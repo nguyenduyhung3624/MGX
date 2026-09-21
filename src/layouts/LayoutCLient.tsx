@@ -1,5 +1,6 @@
 
 import { useEffect, type ReactNode } from 'react'
+import { useLocation } from 'react-router-dom'
 import Header from '../components/layouts/Header'
 import Sidebar from '../components/layouts/Sidebar'
 import Footer from './Footer'
@@ -10,13 +11,14 @@ type LayoutCLientProps = {
 }
 
 const LayoutCLient = ({ children }: LayoutCLientProps) => {
+    const location = useLocation()
     useEffect(() => {
         const root = document.documentElement
         const savedTheme = localStorage.getItem('manga-theme')
 
-        if (savedTheme === 'light') {
-            root.setAttribute('data-theme', 'light')
-        }
+        const devicePrefersLight = window.matchMedia('(prefers-color-scheme: light)').matches
+        const initialTheme = savedTheme || (devicePrefersLight ? 'light' : 'dark')
+        root.setAttribute('data-theme', initialTheme)
 
         const themeToggle = document.getElementById('themeToggle')
         const sideNav = document.getElementById('sideNav')
@@ -51,7 +53,7 @@ const LayoutCLient = ({ children }: LayoutCLientProps) => {
             <Sidebar />
 
             <div className="main-area">
-                <Header />
+                {location.pathname !== '/' && <Header />}
                 <main className="content">{children}</main>
 
                 <Footer />

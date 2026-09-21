@@ -8,15 +8,6 @@ const Header = () => {
         </svg>
       </button>
 
-      <div className="search-box">
-        <svg viewBox="0 0 24 24">
-          <circle cx="11" cy="11" r="7" />
-          <path d="M20 20 16.5 16.5" />
-        </svg>
-        <input placeholder="Search manga" type="text" />
-        <kbd>/</kbd>
-      </div>
-
       <div className="top-bar-actions">
         <button className="icon-btn" id="themeToggle" title="Toggle light/dark theme">
           <svg className="icon-dark" viewBox="0 0 24 24">

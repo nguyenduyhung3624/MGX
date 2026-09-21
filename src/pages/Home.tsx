@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getMangaPage, getPopularManga } from '../services/manga'
+import { getMangaPage, getNewManga, getPopularManga } from '../services/manga'
 import { getTags } from '../services/tags'
 import type { Manga, Tag } from '../types/manga'
 
@@ -13,11 +13,40 @@ const getMangaTitle = (manga: Manga) => {
   return titleMap.en || Object.values(titleMap)[0] || 'Untitled'
 }
 
-const getCoverUrl = (manga: Manga) => {
+const getCoverUrl = (manga: Manga, size: 256 | 512 = 256) => {
   const cover = manga.relationships.find((item) => item.type === 'cover_art')
   return cover?.attributes?.fileName
-    ? `https://uploads.mangadex.org/covers/${manga.id}/${cover.attributes.fileName}.256.jpg`
+    ? `https://uploads.mangadex.org/covers/${manga.id}/${cover.attributes.fileName}.${size}.jpg`
     : 'https://placehold.co/120x170/1c1c1c/ffffff?text=MANGA'
+}
+
+// Fields that exist in the MangaDex API but may be missing from the local Manga type
+const readExtraAttributes = (manga: Manga) =>
+  manga.attributes as unknown as { originalLanguage?: string; contentRating?: string }
+
+const flagCodes: Record<string, string> = {
+  ja: 'jp', ko: 'kr', zh: 'cn', 'zh-hk': 'hk', en: 'gb', vi: 'vn', th: 'th', id: 'id',
+  es: 'es', fr: 'fr', de: 'de', ru: 'ru', pt: 'pt', 'pt-br': 'br',
+}
+
+const getFlagUrl = (manga: Manga) => {
+  const code = flagCodes[readExtraAttributes(manga).originalLanguage ?? '']
+  return code ? `https://flagcdn.com/w40/${code}.png` : ''
+}
+
+const warningTags = ['gore', 'sexual violence']
+
+// Content rating + tags shown as pills in the hero (warnings first, like MangaDex)
+const getHeroBadges = (manga: Manga) => {
+  const rating = readExtraAttributes(manga).contentRating
+  const badges: { key: string; label: string; tone: string }[] = []
+  if (rating && rating !== 'safe') badges.push({ key: `rating-${rating}`, label: rating, tone: `is-${rating}` })
+  const tags = [...(manga.attributes.tags ?? [])].map((tag) => {
+    const label = tag.attributes?.name?.en || 'Tag'
+    return { key: tag.id, label, tone: warningTags.includes(label.toLowerCase()) ? 'is-warning' : '' }
+  })
+  tags.sort((a, b) => Number(b.tone === 'is-warning') - Number(a.tone === 'is-warning'))
+  return [...badges, ...tags].slice(0, 8)
 }
 
 const getTagName = (tag: Tag) => tag.attributes.name.en || Object.values(tag.attributes.name)[0] || 'Tag'
@@ -28,6 +57,44 @@ const getAuthors = (manga: Manga) => manga.relationships
   .filter(Boolean)
   .join(', ')
 
+type MangaRailProps = {
+  title: string
+  items: Manga[]
+  loading?: boolean
+}
+
+const MangaRail = ({ title, items, loading }: MangaRailProps) => {
+  const [page, setPage] = useState(0)
+  const pageSize = 5
+  const totalPages = Math.max(1, Math.ceil(items.length / pageSize))
+  const visibleItems = items.slice(page * pageSize, page * pageSize + pageSize)
+
+  return (
+    <section className="manga-rail">
+      <div className="rail-heading">
+        <h2>{title}</h2>
+        <button aria-label={`Next ${title}`} onClick={() => setPage((current) => (current + 1) % totalPages)}>→</button>
+      </div>
+      {loading ? <div className="state-message">Loading...</div> : (
+        <>
+          <div className="rail-grid">
+            {visibleItems.map((manga) => <Link className="rail-card" key={manga.id} to={`/manga/${manga.id}`}>
+              <div className="rail-cover">
+                <img src={getCoverUrl(manga, 512)} alt={getMangaTitle(manga)} />
+                {getFlagUrl(manga) && <img alt="" className="rail-flag" src={getFlagUrl(manga)} />}
+              </div>
+              <span>{getMangaTitle(manga)}</span>
+            </Link>)}
+          </div>
+          <div className="rail-dots" aria-label={`${title} pages`}>
+            {Array.from({ length: totalPages }, (_, index) => <button aria-label={`Show ${title} page ${index + 1}`} className={index === page ? 'active' : ''} key={index} onClick={() => setPage(index)} />)}
+          </div>
+        </>
+      )}
+    </section>
+  )
+}
+
 const Home = () => {
   const [tagId, setTagId] = useState('')
   const [year, setYear] = useState('')
@@ -36,6 +103,7 @@ const Home = () => {
   const [page, setPage] = useState(1)
   const [pageInput, setPageInput] = useState('1')
   const [popularIndex, setPopularIndex] = useState(0)
+  const heroSearchRef = useRef<HTMLInputElement>(null)
 
   const tagsQuery = useQuery({
     queryKey: ['manga-tags'],
@@ -64,7 +132,28 @@ const Home = () => {
     queryFn: () => getPopularManga(8),
     staleTime: 5 * 60 * 1000,
   })
+  const recommendedQuery = useQuery({
+    queryKey: ['home-recommended'],
+    queryFn: () => getPopularManga(15),
+    staleTime: 5 * 60 * 1000,
+  })
+  const selfPublishedQuery = useQuery({
+    queryKey: ['home-self-published'],
+    queryFn: () => getMangaPage({ 'order[createdAt]': 'desc' }, 15),
+    staleTime: 5 * 60 * 1000,
+  })
+  const seasonalQuery = useQuery({
+    queryKey: ['home-seasonal'],
+    queryFn: () => getMangaPage({ year: new Date().getFullYear(), 'order[latestUploadedChapter]': 'desc' }, 15),
+    staleTime: 5 * 60 * 1000,
+  })
+  const recentlyAddedQuery = useQuery({
+    queryKey: ['home-recently-added'],
+    queryFn: () => getNewManga(15),
+    staleTime: 5 * 60 * 1000,
+  })
   const popularItems = popularQuery.data?.data ?? []
+  const featured = popularItems[popularIndex] ?? popularItems[0]
 
   useEffect(() => {
     if (popularItems.length <= 1) return
@@ -75,6 +164,17 @@ const Home = () => {
   useEffect(() => {
     setPageInput(String(page))
   }, [page])
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault()
+        heroSearchRef.current?.focus()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
 
   const updateFilters = (callback: () => void) => {
     setPage(1)
@@ -101,25 +201,52 @@ const Home = () => {
   return (
     <>
       <section className="popular-section home-popular">
-        <div className="content-head">
-          <h1>Popular new titles</h1>
-          <div className="popular-controls">
-            <button aria-label="Previous popular manga" onClick={() => setPopularIndex((current) => current === 0 ? Math.max(0, popularItems.length - 1) : current - 1)}>←</button>
-            <button aria-label="Next popular manga" onClick={() => setPopularIndex((current) => popularItems.length ? (current + 1) % popularItems.length : 0)}>→</button>
-          </div>
-        </div>
-        {popularQuery.isLoading ? <div className="state-message">Loading popular manga...</div> : popularItems.length > 0 ? (() => {
-          const featured = popularItems[popularIndex]
-          return <Link className="popular-hero" to={`/manga/${featured.id}`} style={{ backgroundImage: `linear-gradient(90deg, var(--bg) 0%, color-mix(in srgb, var(--bg) 72%, transparent) 52%, color-mix(in srgb, var(--bg) 30%, transparent) 100%), url(${getCoverUrl(featured)})` }}>
-            <img src={getCoverUrl(featured)} alt={getMangaTitle(featured)} />
-            <div className="popular-hero-content">
-              <p className="eyebrow">POPULAR NEW TITLE</p>
-              <h3>{getMangaTitle(featured)}</h3>
-              <p>{featured.attributes.description?.en || 'Discover a new English manga series.'}</p>
-              <strong>{getAuthors(featured) || 'MangaDex author'}</strong>
+        {popularQuery.isLoading ? <div className="state-message">Loading popular manga...</div> : featured ? (
+          <div className="popular-hero">
+            <div aria-hidden="true" className="popular-hero-bg" key={`bg-${featured.id}`} style={{ backgroundImage: `url(${getCoverUrl(featured, 512)})` }} />
+
+            <button aria-label="Open menu" className="home-menu-toggle" id="navToggle">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+            </button>
+
+            <h1 className="popular-hero-heading">Popular New Titles</h1>
+
+            <div className="hero-tools">
+              <label className="hero-search search-box">
+                <input aria-label="Search manga" placeholder="Search" ref={heroSearchRef} type="search" />
+                <kbd>Ctrl</kbd>
+                <kbd>K</kbd>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20 16.5 16.5" /></svg>
+              </label>
+              <button aria-label="Account" className="hero-avatar">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.6" /><path d="M4.8 20c.7-3.7 3.4-5.6 7.2-5.6s6.5 1.9 7.2 5.6" /></svg>
+              </button>
             </div>
-          </Link>
-        })() : <div className="state-message">No popular manga available.</div>}
+
+            <Link className="popular-hero-link" key={featured.id} to={`/manga/${featured.id}`}>
+              <div className="popular-hero-cover">
+                <img src={getCoverUrl(featured, 512)} alt={getMangaTitle(featured)} />
+                {getFlagUrl(featured) && <img alt="" className="popular-hero-flag" src={getFlagUrl(featured)} />}
+              </div>
+              <div className="popular-hero-content">
+                <h2>{getMangaTitle(featured)}</h2>
+                <div className="popular-tags">{getHeroBadges(featured).map((badge) => <span className={badge.tone} key={badge.key}>{badge.label}</span>)}</div>
+                <p>{featured.attributes.description?.en || 'Discover a new English manga series.'}</p>
+                <strong>{getAuthors(featured) || 'MangaDex author'}</strong>
+              </div>
+            </Link>
+
+            <div className="popular-controls">
+              <span className="popular-index">NO. {popularIndex + 1}</span>
+              <button aria-label="Previous popular manga" onClick={() => setPopularIndex((current) => current === 0 ? Math.max(0, popularItems.length - 1) : current - 1)}>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7" /></svg>
+              </button>
+              <button aria-label="Next popular manga" onClick={() => setPopularIndex((current) => popularItems.length ? (current + 1) % popularItems.length : 0)}>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg>
+              </button>
+            </div>
+          </div>
+        ) : <div className="state-message">No popular manga available.</div>}
       </section>
 
       <section id="updates">
@@ -175,12 +302,11 @@ const Home = () => {
         </div>
       </section>
 
-      <section>
-        <div className="content-head"><h2>Explore by genre</h2></div>
-        <div className="tag-cloud">
-          {(tagsQuery.data ?? []).slice(0, 8).map((tag) => <button key={tag.id} onClick={() => updateFilters(() => setTagId(tag.id))}>{getTagName(tag)}</button>)}
-        </div>
-      </section>
+
+      <MangaRail loading={recommendedQuery.isLoading} items={recommendedQuery.data?.data ?? []} title="Recommended" />
+      <MangaRail loading={selfPublishedQuery.isLoading} items={selfPublishedQuery.data?.data ?? []} title="Self-Published" />
+      <MangaRail loading={seasonalQuery.isLoading} items={seasonalQuery.data?.data ?? []} title={`Seasonal: Summer ${new Date().getFullYear()}`} />
+      <MangaRail loading={recentlyAddedQuery.isLoading} items={recentlyAddedQuery.data?.data ?? []} title="Recently Added" />
     </>
   )
 }
