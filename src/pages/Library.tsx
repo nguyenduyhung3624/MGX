@@ -5,9 +5,16 @@ import { getFollowedManga } from '../services/user'
 import type { Manga } from '../types/manga'
 
 const getTitle = (manga: Manga) => manga.attributes.title.en || Object.values(manga.attributes.title)[0] || 'Untitled'
+const fallbackCover = 'https://placehold.co/160x230/1c1c1c/ffffff?text=MANGA'
+
 const getCover = (manga: Manga) => {
   const cover = manga.relationships.find((item) => item.type === 'cover_art')?.attributes?.fileName
-  return cover ? `https://uploads.mangadex.org/covers/${manga.id}/${cover}.256.jpg` : 'https://placehold.co/160x230/1c1c1c/ffffff?text=MANGA'
+  return cover ? `https://uploads.mangadex.org/covers/${manga.id}/${cover}.256.jpg` : fallbackCover
+}
+
+const handleImageError = (event: React.SyntheticEvent<HTMLImageElement>) => {
+  event.currentTarget.onerror = null
+  event.currentTarget.src = fallbackCover
 }
 
 const Library = () => {
@@ -33,7 +40,7 @@ const Library = () => {
   return <section className="library-page">
     <div className="content-head"><h1>Library</h1><button className="library-disconnect" onClick={() => { localStorage.removeItem('mangadex-access-token'); setToken('') }}>Disconnect</button></div>
     <div className="library-tabs">{['Reading', 'Plan to Read', 'Completed', 'On Hold', 'Re-reading', 'Dropped'].map((item) => <button className={tab === item ? 'active' : ''} key={item} onClick={() => setTab(item)}>{item}</button>)}</div>
-    {libraryQuery.isLoading ? <div className="state-message">Loading library...</div> : libraryQuery.isError ? <div className="state-message">Unable to load library. Check your token.</div> : manga.length === 0 ? <div className="state-message">No followed manga yet.</div> : <div className="library-grid">{manga.map((item) => <Link className="library-card" key={item.id} to={`/manga/${item.id}`}><img src={getCover(item)} alt={getTitle(item)} /><div><h2>{getTitle(item)}</h2><span>{item.attributes.status}</span><p>{item.attributes.lastChapter ? `Chapter ${item.attributes.lastChapter}` : 'No chapters yet'}</p></div></Link>)}</div>}
+    {libraryQuery.isLoading ? <div className="state-message">Loading library...</div> : libraryQuery.isError ? <div className="state-message">Unable to load library. Check your token.</div> : manga.length === 0 ? <div className="state-message">No followed manga yet.</div> : <div className="library-grid">{manga.map((item) => <Link className="library-card" key={item.id} to={`/manga/${item.id}`}><img alt={getTitle(item)} onError={handleImageError} src={getCover(item)} /><div><h2>{getTitle(item)}</h2><span>{item.attributes.status}</span><p>{item.attributes.lastChapter ? `Chapter ${item.attributes.lastChapter}` : 'No chapters yet'}</p></div></Link>)}</div>}
   </section>
 }
 

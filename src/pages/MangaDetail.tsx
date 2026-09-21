@@ -10,11 +10,18 @@ const getTitle = (manga?: Manga) => {
 	return titles.en || Object.values(titles)[0] || 'Untitled'
 }
 
+const fallbackCover = 'https://placehold.co/240x340/1c1c1c/ffffff?text=MANGA'
+
 const getCoverUrl = (manga?: Manga) => {
 	const cover = manga?.relationships.find((item) => item.type === 'cover_art')
 	return cover?.attributes?.fileName
 		? `https://uploads.mangadex.org/covers/${manga?.id}/${cover.attributes.fileName}.512.jpg`
-		: 'https://placehold.co/240x340/1c1c1c/ffffff?text=MANGA'
+		: fallbackCover
+}
+
+const handleImageError = (event: React.SyntheticEvent<HTMLImageElement>) => {
+	event.currentTarget.onerror = null
+	event.currentTarget.src = fallbackCover
 }
 
 const getAuthors = (manga?: Manga) => manga?.relationships
@@ -92,7 +99,7 @@ const MangaDetail = () => {
 	return (
 		<>
 			<section className="detail-intro">
-				<img className="detail-intro-cover" src={getCoverUrl(manga)} alt={getTitle(manga)} />
+				<img className="detail-intro-cover" alt={getTitle(manga)} onError={handleImageError} src={getCoverUrl(manga)} />
 				<div className="detail-intro-copy">
 					<p className="eyebrow">MANGADEX TITLE</p>
 					<h1>{getTitle(manga)}</h1>

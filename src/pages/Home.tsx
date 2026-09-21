@@ -13,11 +13,18 @@ const getMangaTitle = (manga: Manga) => {
   return titleMap.en || Object.values(titleMap)[0] || 'Untitled'
 }
 
+const fallbackCover = 'https://placehold.co/120x170/1c1c1c/ffffff?text=MANGA'
+
 const getCoverUrl = (manga: Manga, size: 256 | 512 = 256) => {
   const cover = manga.relationships.find((item) => item.type === 'cover_art')
   return cover?.attributes?.fileName
     ? `https://uploads.mangadex.org/covers/${manga.id}/${cover.attributes.fileName}.${size}.jpg`
-    : 'https://placehold.co/120x170/1c1c1c/ffffff?text=MANGA'
+    : fallbackCover
+}
+
+const handleImageError = (event: React.SyntheticEvent<HTMLImageElement>) => {
+  event.currentTarget.onerror = null
+  event.currentTarget.src = fallbackCover
 }
 
 // Fields that exist in the MangaDex API but may be missing from the local Manga type
@@ -80,8 +87,8 @@ const MangaRail = ({ title, items, loading }: MangaRailProps) => {
           <div className="rail-grid">
             {visibleItems.map((manga) => <Link className="rail-card" key={manga.id} to={`/manga/${manga.id}`}>
               <div className="rail-cover">
-                <img src={getCoverUrl(manga, 512)} alt={getMangaTitle(manga)} />
-                {getFlagUrl(manga) && <img alt="" className="rail-flag" src={getFlagUrl(manga)} />}
+                <img alt={getMangaTitle(manga)} onError={handleImageError} src={getCoverUrl(manga, 512)} />
+                {getFlagUrl(manga) && <img alt="" className="rail-flag" onError={handleImageError} src={getFlagUrl(manga)} />}
               </div>
               <span>{getMangaTitle(manga)}</span>
             </Link>)}
@@ -225,8 +232,8 @@ const Home = () => {
 
             <Link className="popular-hero-link" key={featured.id} to={`/manga/${featured.id}`}>
               <div className="popular-hero-cover">
-                <img src={getCoverUrl(featured, 512)} alt={getMangaTitle(featured)} />
-                {getFlagUrl(featured) && <img alt="" className="popular-hero-flag" src={getFlagUrl(featured)} />}
+                <img alt={getMangaTitle(featured)} onError={handleImageError} src={getCoverUrl(featured, 512)} />
+                {getFlagUrl(featured) && <img alt="" className="popular-hero-flag" onError={handleImageError} src={getFlagUrl(featured)} />}
               </div>
               <div className="popular-hero-content">
                 <h2>{getMangaTitle(featured)}</h2>
