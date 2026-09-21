@@ -1,10 +1,12 @@
-import axios from "axios";
+import axios from 'axios'
+
+const baseURL = import.meta.env.VITE_API_BASE_URL ?? '/api'
 
 const instance = axios.create({
-  baseURL: "https://api.mangadex.org",
+  baseURL,
   headers: {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   },
-});
+})
 
-export default instance;
+export default instance
