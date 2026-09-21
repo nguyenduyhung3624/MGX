@@ -18,3 +18,26 @@ export const getFollowedManga = async (
   })
   return response.data.data
 }
+
+export const setMangaReadingStatus = async (
+  mangaId: string,
+  status: string | null,
+  token: string
+): Promise<void> => {
+  await instance.post(`/manga/${mangaId}/status`, { status }, { headers: authHeaders(token) })
+}
+
+export const followManga = async (mangaId: string, token: string): Promise<void> => {
+  await instance.post(`/manga/${mangaId}/follow`, undefined, { headers: authHeaders(token) })
+}
+
+export const unfollowManga = async (mangaId: string, token: string): Promise<void> => {
+  await instance.delete(`/manga/${mangaId}/follow`, { headers: authHeaders(token) })
+}
+
+export const getMangaReadingStatus = async (mangaId: string, token: string): Promise<string | null> => {
+  const response = await instance.get<{ status: string | null }>(`/manga/${mangaId}/status`, {
+    headers: authHeaders(token),
+  })
+  return response.data.status
+}

@@ -34,6 +34,7 @@ const Home = () => {
   const [status, setStatus] = useState('')
   const [sort, setSort] = useState('latest')
   const [page, setPage] = useState(1)
+  const [pageInput, setPageInput] = useState('1')
   const [popularIndex, setPopularIndex] = useState(0)
 
   const tagsQuery = useQuery({
@@ -71,9 +72,20 @@ const Home = () => {
     return () => window.clearInterval(timer)
   }, [popularItems.length])
 
+  useEffect(() => {
+    setPageInput(String(page))
+  }, [page])
+
   const updateFilters = (callback: () => void) => {
     setPage(1)
+    setPageInput('1')
     callback()
+  }
+
+  const goToPage = () => {
+    const nextPage = Math.min(totalPages, Math.max(1, Number(pageInput) || 1))
+    setPage(nextPage)
+    setPageInput(String(nextPage))
   }
 
   const totalPages = Math.max(1, Math.ceil((mangaQuery.data?.total ?? 0) / pageSize))
@@ -83,6 +95,8 @@ const Home = () => {
     chapter: manga.attributes.lastChapter ? `Ch. ${manga.attributes.lastChapter}` : 'Recently updated',
     image: getCoverUrl(manga),
   }))
+  const splitIndex = Math.ceil(mangaItems.length / 2)
+  const mangaColumns = [mangaItems.slice(0, splitIndex), mangaItems.slice(splitIndex)]
 
   return (
     <>
@@ -134,7 +148,7 @@ const Home = () => {
 
         {mangaQuery.isLoading ? <div className="state-message">Loading manga...</div> : mangaQuery.isError ? <div className="state-message">Unable to load manga.</div> : mangaItems.length === 0 ? <div className="state-message">No manga matched your filters.</div> : (
           <div className="update-grid">
-            {mangaItems.map((item) => (
+            {mangaColumns.map((column, columnIndex) => <div className="update-column" key={columnIndex}>{column.map((item) => (
               <article className="update-row" data-manga={item.title} key={item.id}>
                 <Link aria-label={`View ${item.title}`} className="update-link" to={`/manga/${item.id}`}>
                   <div className="update-thumb"><img alt={item.title} src={item.image} /></div>
@@ -148,13 +162,15 @@ const Home = () => {
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.8c0 5.2-8.8 10.2-8.8 10.2S3.2 14 3.2 8.8A4.8 4.8 0 0 1 12 6.1a4.8 4.8 0 0 1 8.8 2.7Z" /></svg>
                 </button>
               </article>
-            ))}
+            ))}</div>)}
           </div>
         )}
 
         <div className="manga-pagination">
           <button disabled={page === 1} onClick={() => setPage((current) => current - 1)}>Previous</button>
-          <span>Page {page} of {totalPages}</span>
+          <span className="current-page">Current page: {page}</span>
+          <label>Go to page <input aria-label="Page number" min="1" max={totalPages} onChange={(event) => setPageInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') goToPage() }} type="number" value={pageInput} /> of {totalPages}</label>
+          <button onClick={goToPage}>Go</button>
           <button disabled={page === totalPages} onClick={() => setPage((current) => current + 1)}>Next</button>
         </div>
       </section>

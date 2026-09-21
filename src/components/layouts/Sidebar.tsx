@@ -15,7 +15,7 @@ const Sidebar = () => {
             </svg>
             Home
           </a>
-          <a className="nav-link" href="#">
+          <a className="nav-link" href="/library">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M6 3.5h12v17l-6-3.5-6 3.5z" />
             </svg>
