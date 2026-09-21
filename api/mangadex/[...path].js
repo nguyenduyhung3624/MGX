@@ -1,16 +1,21 @@
 export default async function handler(request, response) {
-  const { url, method, headers } = request
-  const incomingPath = url.replace(/^\//, '')
-  const targetUrl = `https://api.mangadex.org/${incomingPath}`
+  const { method, headers } = request
+  const requestUrl = new URL(request.url, 'https://example.com')
+  const pathname = requestUrl.pathname.replace(/^\/api\/mangadex\/?/, '') || '/'
+  const targetUrl = `https://api.mangadex.org${pathname}${requestUrl.search}`
 
   try {
+    const body = ['GET', 'HEAD'].includes(method)
+      ? undefined
+      : await request.text()
+
     const fetchResponse = await fetch(targetUrl, {
       method,
       headers: {
         ...headers,
         host: 'api.mangadex.org',
       },
-      body: ['GET', 'HEAD'].includes(method) ? undefined : request.body,
+      body,
     })
 
     const contentType = fetchResponse.headers.get('content-type') || 'application/json'
