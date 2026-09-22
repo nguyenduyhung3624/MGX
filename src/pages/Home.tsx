@@ -110,6 +110,7 @@ const Home = () => {
   const [page, setPage] = useState(1)
   const [pageInput, setPageInput] = useState('1')
   const [popularIndex, setPopularIndex] = useState(0)
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const heroSearchRef = useRef<HTMLInputElement>(null)
 
   const tagsQuery = useQuery({
@@ -219,12 +220,27 @@ const Home = () => {
             <h1 className="popular-hero-heading">Popular New Titles</h1>
 
             <div className="hero-tools">
-              <label className="hero-search search-box">
-                <input aria-label="Search manga" placeholder="Search" ref={heroSearchRef} type="search" />
-                <kbd>Ctrl</kbd>
-                <kbd>K</kbd>
-                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20 16.5 16.5" /></svg>
-              </label>
+              <div className={'hero-search-wrap' + (mobileSearchOpen ? ' open' : '')}>
+                <label className="hero-search search-box">
+                  <input aria-label="Search manga" placeholder="Search" ref={heroSearchRef} type="search" />
+                  <kbd>Ctrl</kbd>
+                  <kbd>K</kbd>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20 16.5 16.5" /></svg>
+                </label>
+                <button
+                  aria-label={mobileSearchOpen ? 'Close search' : 'Open search'}
+                  className="hero-search-toggle"
+                  onClick={() => {
+                    setMobileSearchOpen((open) => {
+                      if (!open) window.setTimeout(() => heroSearchRef.current?.focus(), 0)
+                      return !open
+                    })
+                  }}
+                  type="button"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20 16.5 16.5" /></svg>
+                </button>
+              </div>
               <button aria-label="Account" className="hero-avatar">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.6" /><path d="M4.8 20c.7-3.7 3.4-5.6 7.2-5.6s6.5 1.9 7.2 5.6" /></svg>
               </button>
