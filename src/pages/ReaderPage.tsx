@@ -30,7 +30,7 @@ const ReaderPage = () => {
 			</header>
 			<div className="reader-pages">
 				{pageFiles.map((file, index) => (
-					<img key={file} src={`${baseUrl}/data/${chapter.hash}/${file}`} alt={`Page ${index + 1}`} />
+					<img key={file} src={`/api/page?url=${encodeURIComponent(`${baseUrl}/data/${chapter.hash}/${file}`)}`} alt={`Page ${index + 1}`} />
 				))}
 			</div>
 		</main>
