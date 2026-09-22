@@ -1,65 +1,68 @@
-
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
 import Header from '../components/layouts/Header'
 import Sidebar from '../components/layouts/Sidebar'
 import Footer from './Footer'
 
-
 type LayoutCLientProps = {
-    children: ReactNode
+  children: ReactNode
 }
 
 const LayoutCLient = ({ children }: LayoutCLientProps) => {
-    const location = useLocation()
-    useEffect(() => {
-        const root = document.documentElement
-        const savedTheme = localStorage.getItem('manga-theme')
+  const location = useLocation()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-        const devicePrefersLight = window.matchMedia('(prefers-color-scheme: light)').matches
-        const initialTheme = savedTheme || (devicePrefersLight ? 'light' : 'dark')
-        root.setAttribute('data-theme', initialTheme)
+  useEffect(() => {
+    const root = document.documentElement
+    const savedTheme = localStorage.getItem('manga-theme')
+    const devicePrefersLight = window.matchMedia('(prefers-color-scheme: light)').matches
+    root.setAttribute('data-theme', savedTheme || (devicePrefersLight ? 'light' : 'dark'))
+  }, [])
 
-        const themeToggle = document.getElementById('themeToggle')
-        const sideNav = document.getElementById('sideNav')
-        const backdrop = document.getElementById('sideNavBackdrop')
-        const navToggle = document.getElementById('navToggle')
+  useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [location.pathname])
 
-        themeToggle?.addEventListener('click', () => {
-            const isLight = root.getAttribute('data-theme') === 'light'
-            root.setAttribute('data-theme', isLight ? 'dark' : 'light')
-            localStorage.setItem('manga-theme', isLight ? 'dark' : 'light')
-        })
+  useEffect(() => {
+    document.body.style.overflow = mobileMenuOpen ? 'hidden' : ''
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [mobileMenuOpen])
 
-        navToggle?.addEventListener('click', () => {
-            sideNav?.classList.add('open')
-            backdrop?.classList.add('open')
-        })
+  const toggleTheme = () => {
+    const root = document.documentElement
+    const isLight = root.getAttribute('data-theme') === 'light'
+    const nextTheme = isLight ? 'dark' : 'light'
+    root.setAttribute('data-theme', nextTheme)
+    localStorage.setItem('manga-theme', nextTheme)
+  }
 
-        backdrop?.addEventListener('click', () => {
-            sideNav?.classList.remove('open')
-            backdrop?.classList.remove('open')
-        })
+  return (
+    <div className="app-shell">
+      <Sidebar open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
 
-        return () => {
-            themeToggle?.removeEventListener('click', () => { })
-            navToggle?.removeEventListener('click', () => { })
-            backdrop?.removeEventListener('click', () => { })
-        }
-    }, [])
-
-    return (
-        <div className="app-shell">
-            <Sidebar />
-
-            <div className="main-area">
-                {location.pathname !== '/' && <Header />}
-                <main className="content">{children}</main>
-
-                <Footer />
-            </div>
-        </div>
-    )
+      <div className="main-area">
+        {location.pathname !== '/' && (
+          <Header onMenuOpen={() => setMobileMenuOpen(true)} onThemeToggle={toggleTheme} />
+        )}
+        {location.pathname === '/' && (
+          <button
+            aria-label="Open menu"
+            className="mobile-floating-menu"
+            onClick={() => setMobileMenuOpen(true)}
+            type="button"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        )}
+        <main className="content">{children}</main>
+        <Footer />
+      </div>
+    </div>
+  )
 }
 
 export default LayoutCLient
