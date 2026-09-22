@@ -1,7 +1,9 @@
-const Sidebar = () => {
+type SidebarProps = { open?: boolean; onClose?: () => void }
+
+const Sidebar = ({ open = false, onClose }: SidebarProps) => {
   return (
     <>
-      <aside className="side-nav" id="sideNav">
+      <aside className={'side-nav' + (open ? ' open' : '')} id="sideNav">
         <a className="side-logo" href="#">
           <span className="dot" />
           MANGA
@@ -56,7 +58,7 @@ const Sidebar = () => {
         </nav>
       </aside>
 
-      <div className="side-nav-backdrop" id="sideNavBackdrop" />
+      <button aria-label="Close menu" className={'side-nav-backdrop' + (open ? ' open' : '')} onClick={onClose} type="button" />
     </>
   )
 }
