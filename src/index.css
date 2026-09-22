@@ -2245,3 +2245,8 @@ section {
     padding: 0;
   }
 }
+
+@media (max-width: 980px) {
+  .home-menu-toggle { display: flex; }
+  .side-nav-backdrop { border: 0; padding: 0; }
+}
