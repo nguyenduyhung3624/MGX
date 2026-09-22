@@ -2317,3 +2317,60 @@ section {
   object-fit: contain;
   flex: 0 0 auto;
 }
+
+
+@media (max-width: 620px) {
+  .detail-intro {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 18px;
+  }
+
+  .detail-intro-cover {
+    width: min(180px, 48vw);
+    height: auto;
+    aspect-ratio: 230 / 326;
+    align-self: center;
+  }
+
+  .detail-intro-copy h1 {
+    font-size: 30px;
+  }
+
+  .detail-intro-subtitle {
+    font-size: 15px;
+  }
+
+  .detail-intro-description {
+    margin-top: 18px;
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
+  .chapter-workspace-head {
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .chapter-tools {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .reader-bar {
+    gap: 8px;
+    padding: 12px 14px;
+    font-size: 12px;
+  }
+
+  .reader-pages {
+    gap: 0;
+    padding: 0 0 32px;
+  }
+
+  .reader-pages img {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+  }
+}
