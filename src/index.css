@@ -2309,3 +2309,11 @@ section {
     display: none;
   }
 }
+
+
+.side-logo-image {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  flex: 0 0 auto;
+}
