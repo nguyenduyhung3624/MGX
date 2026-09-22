@@ -35,6 +35,8 @@ export default async function handler(req, res) {
   const targetUrl = new URL(`${origin}/${path}`)
 
   requestUrl.searchParams.forEach((value, key) => {
+    if (key === '__path' || key === '___path') return
+
     targetUrl.searchParams.append(key, value)
   })
 
