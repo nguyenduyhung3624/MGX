@@ -1,12 +1,14 @@
+import mgxLogo from '../../assets/998ca46e-3d45-4cb0-ac63-522184fdab70.png'
+
 type SidebarProps = { open?: boolean; onClose?: () => void }
 
 const Sidebar = ({ open = false, onClose }: SidebarProps) => {
   return (
     <>
       <aside className={'side-nav' + (open ? ' open' : '')} id="sideNav">
-        <a className="side-logo" href="#">
-          <span className="dot" />
-          MANGA
+        <a className="side-logo" href="/">
+          <img alt="MGX" className="side-logo-image" src={mgxLogo} />
+          <span>MGX</span>
         </a>
 
         <nav className="nav-group">
