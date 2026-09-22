@@ -1,30 +1,42 @@
 export default async function handler(req, res) {
-  const rawPath = Array.isArray(req.query.path)
-    ? req.query.path
-    : String(req.query.path || '').split('/').filter(Boolean)
+  const requestUrl = new URL(
+    req.url || '/',
+    `https://${req.headers.host || 'localhost'}`
+  )
 
-  const path = rawPath.join('/')
+  const marker = '/api/mangadex/'
+  const markerIndex = requestUrl.pathname.indexOf(marker)
+
+  let path = ''
+
+  if (markerIndex !== -1) {
+    path = decodeURIComponent(
+      requestUrl.pathname.slice(markerIndex + marker.length)
+    )
+  }
+
+  if (!path) {
+    const rawPath = Array.isArray(req.query?.path)
+      ? req.query.path
+      : String(req.query?.path || '').split('/').filter(Boolean)
+
+    path = rawPath.map((segment) => decodeURIComponent(segment)).join('/')
+  }
 
   if (!path) {
     return res.status(400).json({ error: 'Missing MangaDex path' })
   }
 
-  const isCover = rawPath[0] === 'covers'
+  const isCover = path.startsWith('covers/')
   const origin = isCover
     ? 'https://uploads.mangadex.org'
     : 'https://api.mangadex.org'
 
   const targetUrl = new URL(`${origin}/${path}`)
 
-  for (const [key, value] of Object.entries(req.query)) {
-    if (key === 'path') continue
-
-    if (Array.isArray(value)) {
-      value.forEach((item) => targetUrl.searchParams.append(key, String(item)))
-    } else if (value != null) {
-      targetUrl.searchParams.set(key, String(value))
-    }
-  }
+  requestUrl.searchParams.forEach((value, key) => {
+    targetUrl.searchParams.append(key, value)
+  })
 
   const upstream = await fetch(targetUrl.toString(), {
     method: req.method,
