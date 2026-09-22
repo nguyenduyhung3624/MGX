@@ -35,7 +35,9 @@ export default async function handler(req, res) {
   const targetUrl = new URL(`${origin}/${path}`)
 
   requestUrl.searchParams.forEach((value, key) => {
-    if (key === '__path' || key === '___path') return
+    // Vercel may inject internal routing parameters such as ___path.
+    // They must never be forwarded to MangaDex.
+    if (key.startsWith('_') || key === 'path') return
 
     targetUrl.searchParams.append(key, value)
   })
