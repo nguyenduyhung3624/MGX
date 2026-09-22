@@ -18,7 +18,7 @@ const fallbackCover = 'https://placehold.co/120x170/1c1c1c/ffffff?text=MANGA'
 const getCoverUrl = (manga: Manga, size: 256 | 512 = 256) => {
   const cover = manga.relationships.find((item) => item.type === 'cover_art')
   return cover?.attributes?.fileName
-    ? `https://uploads.mangadex.org/covers/${manga.id}/${cover.attributes.fileName}.${size}.jpg`
+    ? `/api/cover?mangaId=${encodeURIComponent(manga.id)}&fileName=${encodeURIComponent(cover.attributes.fileName)}&size=${size}`
     : fallbackCover
 }
 
@@ -110,6 +110,7 @@ const Home = () => {
   const [page, setPage] = useState(1)
   const [pageInput, setPageInput] = useState('1')
   const [popularIndex, setPopularIndex] = useState(0)
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const heroSearchRef = useRef<HTMLInputElement>(null)
 
   const tagsQuery = useQuery({
@@ -212,19 +213,34 @@ const Home = () => {
           <div className="popular-hero">
             <div aria-hidden="true" className="popular-hero-bg" key={`bg-${featured.id}`} style={{ backgroundImage: `url(${getCoverUrl(featured, 512)})` }} />
 
-            <button aria-label="Open menu" className="home-menu-toggle" id="navToggle">
+            <button aria-label="Open menu" className="home-menu-toggle" onClick={() => window.dispatchEvent(new Event("open-mobile-menu"))} type="button">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
             </button>
 
             <h1 className="popular-hero-heading">Popular New Titles</h1>
 
             <div className="hero-tools">
-              <label className="hero-search search-box">
-                <input aria-label="Search manga" placeholder="Search" ref={heroSearchRef} type="search" />
-                <kbd>Ctrl</kbd>
-                <kbd>K</kbd>
-                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20 16.5 16.5" /></svg>
-              </label>
+              <div className={'hero-search-wrap' + (mobileSearchOpen ? ' open' : '')}>
+                <label className="hero-search search-box">
+                  <input aria-label="Search manga" placeholder="Search" ref={heroSearchRef} type="search" />
+                  <kbd>Ctrl</kbd>
+                  <kbd>K</kbd>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20 16.5 16.5" /></svg>
+                </label>
+                <button
+                  aria-label={mobileSearchOpen ? 'Close search' : 'Open search'}
+                  className="hero-search-toggle"
+                  onClick={() => {
+                    setMobileSearchOpen((open) => {
+                      if (!open) window.setTimeout(() => heroSearchRef.current?.focus(), 0)
+                      return !open
+                    })
+                  }}
+                  type="button"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20 16.5 16.5" /></svg>
+                </button>
+              </div>
               <button aria-label="Account" className="hero-avatar">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.6" /><path d="M4.8 20c.7-3.7 3.4-5.6 7.2-5.6s6.5 1.9 7.2 5.6" /></svg>
               </button>
