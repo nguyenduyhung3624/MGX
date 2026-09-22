@@ -212,7 +212,7 @@ const Home = () => {
           <div className="popular-hero">
             <div aria-hidden="true" className="popular-hero-bg" key={`bg-${featured.id}`} style={{ backgroundImage: `url(${getCoverUrl(featured, 512)})` }} />
 
-            <button aria-label="Open menu" className="home-menu-toggle" id="navToggle">
+            <button aria-label="Open menu" className="home-menu-toggle" onClick={() => window.dispatchEvent(new Event("open-mobile-menu"))} type="button">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
             </button>
 
