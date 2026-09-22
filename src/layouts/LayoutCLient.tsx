@@ -24,6 +24,12 @@ const LayoutCLient = ({ children }: LayoutCLientProps) => {
   }, [location.pathname])
 
   useEffect(() => {
+    const openMobileMenu = () => setMobileMenuOpen(true)
+    window.addEventListener('open-mobile-menu', openMobileMenu)
+    return () => window.removeEventListener('open-mobile-menu', openMobileMenu)
+  }, [])
+
+  useEffect(() => {
     document.body.style.overflow = mobileMenuOpen ? 'hidden' : ''
     return () => {
       document.body.style.overflow = ''
@@ -46,18 +52,7 @@ const LayoutCLient = ({ children }: LayoutCLientProps) => {
         {location.pathname !== '/' && (
           <Header onMenuOpen={() => setMobileMenuOpen(true)} onThemeToggle={toggleTheme} />
         )}
-        {location.pathname === '/' && (
-          <button
-            aria-label="Open menu"
-            className="mobile-floating-menu"
-            onClick={() => setMobileMenuOpen(true)}
-            type="button"
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-        )}
+
         <main className="content">{children}</main>
         <Footer />
       </div>
