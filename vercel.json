@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
     {
-      "source": "/api/mangadex/covers/:path*",
+      "source": "/api/cover/:path*",
       "destination": "https://uploads.mangadex.org/covers/:path*"
     },
     {
