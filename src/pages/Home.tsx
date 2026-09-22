@@ -18,7 +18,7 @@ const fallbackCover = 'https://placehold.co/120x170/1c1c1c/ffffff?text=MANGA'
 const getCoverUrl = (manga: Manga, size: 256 | 512 = 256) => {
   const cover = manga.relationships.find((item) => item.type === 'cover_art')
   return cover?.attributes?.fileName
-    ? `https://uploads.mangadex.org/covers/${manga.id}/${cover.attributes.fileName}.${size}.jpg`
+    ? `/api/mangadex/covers/${manga.id}/${cover.attributes.fileName}.${size}.jpg`
     : fallbackCover
 }
 
