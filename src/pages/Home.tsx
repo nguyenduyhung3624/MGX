@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { getMangaPage, getNewManga, getPopularManga } from '../services/manga'
 import { getTags } from '../services/tags'
 import type { Manga, Tag } from '../types/manga'
@@ -103,6 +103,7 @@ const MangaRail = ({ title, items, loading }: MangaRailProps) => {
 }
 
 const Home = () => {
+  const navigate = useNavigate()
   const [tagId, setTagId] = useState('')
   const [year, setYear] = useState('')
   const [status, setStatus] = useState('')
@@ -177,7 +178,8 @@ const Home = () => {
     const onKeyDown = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault()
-        heroSearchRef.current?.focus()
+        setMobileSearchOpen(true)
+        window.setTimeout(() => heroSearchRef.current?.focus(), 0)
       }
     }
     window.addEventListener('keydown', onKeyDown)
@@ -221,12 +223,12 @@ const Home = () => {
 
             <div className="hero-tools">
               <div className={'hero-search-wrap' + (mobileSearchOpen ? ' open' : '')}>
-                <label className="hero-search search-box">
-                  <input aria-label="Search manga" placeholder="Search" ref={heroSearchRef} type="search" />
-                  <kbd>Ctrl</kbd>
+                <form className="hero-search search-box" role="search" onSubmit={(event) => { event.preventDefault(); const title = heroSearchRef.current?.value.trim(); if (title) navigate(`/search?q=${encodeURIComponent(title)}`) }}>
+                  <input aria-label="Search manga" placeholder="Search manga…" ref={heroSearchRef} maxLength={200} type="search" />
+                  <button type="submit" aria-label="Submit manga search">Search</button><kbd>Ctrl</kbd>
                   <kbd>K</kbd>
                   <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20 16.5 16.5" /></svg>
-                </label>
+                </form>
                 <button
                   aria-label={mobileSearchOpen ? 'Close search' : 'Open search'}
                   className="hero-search-toggle"

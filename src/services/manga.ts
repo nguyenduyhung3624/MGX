@@ -148,6 +148,7 @@ export const getMangaAggregate = async (
   const response = await instance.get<MangaAggregateResponse>(`/manga/${id}/aggregate`, {
     params: {
       'translatedLanguage[]': ['en'],
+      includeUnavailable: 1,
       ...params,
     },
   })

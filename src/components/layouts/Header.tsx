@@ -1,3 +1,4 @@
+import SearchForm from '../manga/SearchForm'
 
 type HeaderProps = { onMenuOpen: () => void; onThemeToggle: () => void }
 
@@ -10,6 +11,7 @@ const Header = ({ onMenuOpen, onThemeToggle }: HeaderProps) => {
         </svg>
       </button>
 
+      <SearchForm />
       <div className="top-bar-actions">
         <button className="icon-btn" id="themeToggle" onClick={onThemeToggle} title="Toggle light/dark theme" type="button">
           <svg className="icon-dark" viewBox="0 0 24 24">

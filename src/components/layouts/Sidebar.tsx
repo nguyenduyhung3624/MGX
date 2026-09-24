@@ -12,7 +12,7 @@ const Sidebar = ({ open = false, onClose }: SidebarProps) => {
         </a>
 
         <nav className="nav-group">
-          <a className="nav-link active" href="#">
+          <a className="nav-link active" href="/">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M4 11.5 12 4l8 7.5" />
               <path d="M6 10v9h5v-5h2v5h5v-9" />
@@ -42,6 +42,7 @@ const Sidebar = ({ open = false, onClose }: SidebarProps) => {
           </a>
         </nav>
 
+        <a className="nav-link" href="/search">Search manga</a>
         <div className="nav-heading">EXPLORE</div>
         <nav className="nav-group">
           <a className="nav-link" href="#updates">

@@ -6,19 +6,19 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     proxy: {
-      '/api': {
+      '/api/mangadex': {
         target: 'https://api.mangadex.org',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
+        rewrite: (path) => path.replace(/^\/api\/mangadex/, ''),
       },
     },
   },
   preview: {
     proxy: {
-      '/api': {
+      '/api/mangadex': {
         target: 'https://api.mangadex.org',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
+        rewrite: (path) => path.replace(/^\/api\/mangadex/, ''),
       },
     },
   },

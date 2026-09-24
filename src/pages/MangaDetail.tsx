@@ -51,6 +51,8 @@ const getTitleLanguage = (title: Record<string, string>) => Object.keys(title)[0
 const MangaDetail = () => {
 	const { mangaId } = useParams<{ mangaId: string }>()
 	const [page, setPage] = useState(1)
+	const [showUnavailable, setShowUnavailable] = useState(true)
+	const [descending, setDescending] = useState(true)
 	const [language, setLanguage] = useState('en')
 	const [token] = useState(() => localStorage.getItem('mangadex-access-token') || '')
 	const queryClient = useQueryClient()
@@ -61,7 +63,7 @@ const MangaDetail = () => {
 		enabled: Boolean(mangaId),
 	})
 	const aggregateQuery = useQuery({
-		queryKey: ['chapters', mangaId, language],
+		queryKey: ['chapters', mangaId, language, 'include-unavailable'],
 		queryFn: () => getMangaAggregate(mangaId as string, { 'translatedLanguage[]': [language] }),
 		enabled: Boolean(mangaId),
 	})
@@ -87,11 +89,13 @@ const MangaDetail = () => {
 	if (mangaQuery.isError) return <div className="state-message">Unable to load manga details.</div>
 
 	const manga = mangaQuery.data
-	const languages = manga?.attributes.availableTranslatedLanguages?.length ? manga.attributes.availableTranslatedLanguages : ['en']
-	const chapters = Array.from(new Map(Object.values(aggregateQuery.data?.volumes ?? {})
-		.flatMap((volume) => Object.values(volume.chapters))
+	const languages = [...new Set([language, ...Object.keys(languageNames), ...(manga?.attributes.availableTranslatedLanguages ?? [])])]
+	const allChapters = Array.from(new Map(Object.values(aggregateQuery.data?.volumes ?? {})
+		.flatMap((volume) => Object.values(volume.chapters).map((chapter) => ({ ...chapter, volume: volume.volume })))
 		.map((chapter) => [`${chapter.volume ?? ''}:${chapter.chapter}`, chapter] as const)).values())
-		.sort((first, second) => Number(second.chapter) - Number(first.chapter))
+		.sort((first, second) => (descending ? -1 : 1) * first.chapter.localeCompare(second.chapter, undefined, { numeric: true }))
+	const unavailableCount = allChapters.filter((chapter) => chapter.isUnavailable).length
+	const chapters = allChapters.filter((chapter) => showUnavailable || !chapter.isUnavailable)
 	const totalPages = Math.max(1, Math.ceil(chapters.length / pageSize))
 	const visibleChapters = chapters.slice((page - 1) * pageSize, page * pageSize)
 	const description = manga?.attributes.description?.en || Object.values(manga?.attributes.description || {})[0]
@@ -103,9 +107,9 @@ const MangaDetail = () => {
 				<div className="detail-intro-copy">
 					<p className="eyebrow">MANGADEX TITLE</p>
 					<h1>{getTitle(manga)}</h1>
-					<p className="detail-intro-subtitle">{manga?.attributes.altTitles?.[0]?.en || 'English translation available'}</p>
+					<p className="detail-intro-subtitle">{manga?.attributes.altTitles?.[0]?.en || 'MangaDex catalogue'}</p>
 					<p className="detail-intro-description">{description || 'No description available for this manga.'}</p>
-					<div className="detail-header-meta"><span>★ 7.5</span><span>{manga?.attributes.year || 'N/A'}</span><span>{manga?.attributes.status || 'ongoing'}</span><span>{languages.length} languages</span></div>
+						<div className="detail-header-meta"><span>{manga?.attributes.year || 'N/A'}</span><span>{manga?.attributes.status || 'ongoing'}</span><span>{manga?.attributes.availableTranslatedLanguages?.length ?? 0} available translation languages</span></div>
 				</div>
 			</section>
 			<section className="detail-layout">
@@ -134,18 +138,19 @@ const MangaDetail = () => {
 							<span className="chapter-count">{chapters.length} chapters</span>
 						</div>
 					</div>
-					<div className="chapter-options"><label><input type="checkbox" /> Show unavailable chapters</label><button>↕ Descending</button></div>
-					{aggregateQuery.isError ? <div className="state-message">Unable to load chapters.</div> : chapters.length === 0 ? <div className="state-message">No chapters available for this manga.</div> : (
+					<div className="chapter-options"><label><input type="checkbox" checked={showUnavailable} onChange={(event) => { setShowUnavailable(event.target.checked); setPage(1) }} /> Show unavailable chapters</label><button onClick={() => { setDescending(!descending); setPage(1) }}>↕ {descending ? 'Descending' : 'Ascending'}</button></div>
+					{!aggregateQuery.isError && unavailableCount > 0 && <div className="unavailable-notice" role="status"><strong>{unavailableCount === allChapters.length ? 'Unavailable in this language' : `${unavailableCount} unavailable chapter${unavailableCount === 1 ? '' : 's'}`}</strong><p>MangaDex marks these chapters as unavailable. Their pages cannot be read here. This can include copyright removals; the API does not specify the reason.</p></div>}
+					{aggregateQuery.isError ? <div className="state-message">Unable to load chapters. <button onClick={() => aggregateQuery.refetch()}>Try again</button></div> : chapters.length === 0 ? <div className="state-message">{unavailableCount ? 'All chapters in this language are unavailable. Enable “Show unavailable chapters” to see them.' : 'No chapters found in this language. Try another language.'}</div> : (
 					<>
 					<div className="chapter-list">
 						{visibleChapters.map((chapter: AggregateChapter, index) => (
 							<Fragment key={chapter.id}>
 								{(index === 0 || visibleChapters[index - 1].volume !== chapter.volume) && <div className="volume-heading"><span>Volume {chapter.volume || '1'}</span><span>Chapter {chapter.chapter} <b>⌃</b></span></div>}
-								<Link className="chapter-item" to={`/read/${chapter.id}`}>
+								{chapter.isUnavailable ? <div className="chapter-item chapter-unavailable" aria-disabled="true"><span className="chapter-title"><strong>Chapter {chapter.chapter || '?'}</strong><small>Pages removed or unavailable on MangaDex</small></span><span className="unavailable-badge">Unavailable</span></div> : <Link className="chapter-item" to={`/read/${chapter.id}`}>
 									<span className="chapter-title"><strong>Chapter {chapter.chapter || '?'}</strong><small>{chapter.volume ? `Volume ${chapter.volume}` : 'MangaDex translation'}</small></span>
-									<span className="chapter-pages">{chapter.count || 0} pages</span>
+									<span className="chapter-pages">{chapter.count || 1} releases</span>
 									<span className="chapter-read">Read</span>
-								</Link>
+								</Link>}
 							</Fragment>
 						))}
 					</div>
