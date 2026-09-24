@@ -227,8 +227,8 @@ const Home = () => {
             <div className="hero-tools">
               <div className={'hero-search-wrap' + (mobileSearchOpen ? ' open' : '')}>
                 <form className="hero-search search-box" role="search" onSubmit={(event) => { event.preventDefault(); const title = heroSearchRef.current?.value.trim(); if (title) navigate(`/search?q=${encodeURIComponent(title)}`) }}>
-                  <input aria-label="Search manga" placeholder="Search manga…" ref={heroSearchRef} maxLength={200} type="search" />
-                  <button type="submit" aria-label="Submit manga search">Search</button><kbd>Ctrl</kbd>
+                  <input aria-label="Search manga" placeholder="Search" ref={heroSearchRef} maxLength={200} type="search" />
+                  <kbd>Ctrl</kbd>
                   <kbd>K</kbd>
                   <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20 16.5 16.5" /></svg>
                 </form>
@@ -246,8 +246,8 @@ const Home = () => {
                   <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20 16.5 16.5" /></svg>
                 </button>
               </div>
-              <Link aria-label="Truyện đã lưu" className="hero-avatar" to="/library">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h12v17l-6-3.5-6 3.5z" /></svg>
+              <Link aria-label="Hồ sơ" className="hero-avatar" title="Hồ sơ" to="/library">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4.5 20.5c1-4 4-6 7.5-6s6.5 2 7.5 6" /></svg>
               </Link>
             </div>
 

@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, useSearchParams } from 'react-router-dom'
-import SearchForm from '../components/manga/SearchForm'
 import SaveButton from '../components/manga/SaveButton'
 import { toSavedManga } from '../services/localLibrary'
 import { getMangaPage } from '../services/manga'
@@ -22,7 +21,6 @@ export default function Search() {
   const go = (next: number) => setParams({ q: title, page: String(next), ...(unavailable ? { unavailable: '1' } : {}) })
   return <section className="search-page">
     <h1>Search manga</h1>
-    <SearchForm key={title} initialValue={title} />
     <label className="search-option"><input type="checkbox" checked={unavailable} onChange={(event) => setParams({ q: title, ...(event.target.checked ? { unavailable: '1' } : {}) })} /> Only titles with unavailable chapters</label>
     <p className="search-hint">Search includes titles without readable chapters. Unavailable chapters are marked on the title page.</p>
     {!title ? <p className="state-message">Enter a manga title to begin.</p> : query.isLoading ? <p className="state-message" role="status">Searching MangaDex…</p> : query.isError ? <div className="state-message" role="alert">Could not search MangaDex. <button onClick={() => query.refetch()}>Try again</button></div> : <>

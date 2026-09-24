@@ -38,7 +38,7 @@ const Sidebar = ({ open = false, onClose }: SidebarProps) => {
           </a>
         </nav>
 
-        <a className="nav-link" href="/search">Search manga</a>
+        <NavLink className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`} to="/search">Search manga</NavLink>
         <div className="nav-heading">EXPLORE</div>
         <nav className="nav-group">
           <a className="nav-link" href="#updates">
