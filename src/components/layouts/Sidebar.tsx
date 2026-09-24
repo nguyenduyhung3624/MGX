@@ -1,8 +1,11 @@
 import mgxLogo from '../../assets/998ca46e-3d45-4cb0-ac63-522184fdab70.png'
+import { NavLink } from 'react-router-dom'
+import { useLocalLibrary } from '../../hooks/useLocalLibrary'
 
 type SidebarProps = { open?: boolean; onClose?: () => void }
 
 const Sidebar = ({ open = false, onClose }: SidebarProps) => {
+  const library = useLocalLibrary()
   return (
     <>
       <aside className={'side-nav' + (open ? ' open' : '')} id="sideNav">
@@ -12,26 +15,19 @@ const Sidebar = ({ open = false, onClose }: SidebarProps) => {
         </a>
 
         <nav className="nav-group">
-          <a className="nav-link active" href="/">
+          <NavLink className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`} to="/" end>
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M4 11.5 12 4l8 7.5" />
               <path d="M6 10v9h5v-5h2v5h5v-9" />
             </svg>
             Home
-          </a>
-          <a className="nav-link" href="/library">
+          </NavLink>
+          <NavLink className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`} to="/library">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M6 3.5h12v17l-6-3.5-6 3.5z" />
             </svg>
-            Following
-          </a>
-          <a className="nav-link" href="#">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <rect height="16" rx="1" width="7" x="3.5" y="4" />
-              <rect height="16" rx="1" width="7" x="13.5" y="4" />
-            </svg>
-            Library
-          </a>
+            Truyện đã lưu <span className="saved-count">{library.saved.length}</span>
+          </NavLink>
           <a className="nav-link" href="#">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M3.5 12a8.5 8.5 0 1 0 2.5-6" />

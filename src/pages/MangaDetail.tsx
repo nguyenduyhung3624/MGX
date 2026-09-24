@@ -1,8 +1,10 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { Fragment, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getMangaById, getMangaAggregate, getMangaPage } from '../services/manga'
-import { followManga, getMangaReadingStatus, setMangaReadingStatus } from '../services/user'
+import SaveButton from '../components/manga/SaveButton'
+import { toSavedManga } from '../services/localLibrary'
+import { useLocalLibrary } from '../hooks/useLocalLibrary'
 import type { AggregateChapter, Manga } from '../types/manga'
 
 const getTitle = (manga?: Manga) => {
@@ -54,8 +56,8 @@ const MangaDetail = () => {
 	const [showUnavailable, setShowUnavailable] = useState(true)
 	const [descending, setDescending] = useState(true)
 	const [language, setLanguage] = useState('en')
-	const [token] = useState(() => localStorage.getItem('mangadex-access-token') || '')
-	const queryClient = useQueryClient()
+	const library = useLocalLibrary()
+	const lastRead = library.progress.find(item => item.mangaId === mangaId)
 	const pageSize = 20
 	const mangaQuery = useQuery({
 		queryKey: ['manga', mangaId],
@@ -71,19 +73,6 @@ const MangaDetail = () => {
 		queryKey: ['manga-recommendations', mangaId, mangaQuery.data?.attributes.tags?.map((tag) => tag.id)],
 		queryFn: () => getMangaPage({ 'includedTags[]': (mangaQuery.data?.attributes.tags ?? []).slice(0, 3).map((tag) => tag.id) }, 6, 0),
 		enabled: Boolean(mangaId && mangaQuery.data?.attributes.tags?.length),
-	})
-	const statusQuery = useQuery({
-		queryKey: ['manga-status', mangaId, token],
-		queryFn: () => getMangaReadingStatus(mangaId as string, token),
-		enabled: Boolean(mangaId && token),
-	})
-	const readingMutation = useMutation({
-		mutationFn: async () => {
-			if (!token) throw new Error('Connect a MangaDex access token first.')
-			await setMangaReadingStatus(mangaId as string, 'reading', token)
-			await followManga(mangaId as string, token)
-		},
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: ['manga-status', mangaId, token] }),
 	})
 	if (mangaQuery.isLoading || aggregateQuery.isLoading) return <div className="state-message">Loading manga details...</div>
 	if (mangaQuery.isError) return <div className="state-message">Unable to load manga details.</div>
@@ -114,8 +103,8 @@ const MangaDetail = () => {
 			</section>
 			<section className="detail-layout">
 				<aside className="manga-info-panel">
-					<button className={`reading-action ${statusQuery.data === 'reading' ? 'active' : ''}`} disabled={readingMutation.isPending} onClick={() => readingMutation.mutate()}>{statusQuery.data === 'reading' ? 'Reading' : 'Add to reading'}</button>
-					{readingMutation.isError && <p className="action-error">{readingMutation.error.message}</p>}
+					{manga && <SaveButton manga={toSavedManga(manga)} />}
+					{lastRead && <Link className="continue-reading" to={`/read/${lastRead.chapterId}`}>Đọc tiếp · Chương {lastRead.chapter || '?'}</Link>}
 					<div className="manga-info-group"><strong>Author / Artist</strong><span>{getAuthors(manga) || 'Unknown author'}</span></div>
 					<div className="manga-info-group"><strong>Status</strong><span>{manga?.attributes.status || 'Unknown'}</span><span>{manga?.attributes.year ? `Published ${manga.attributes.year}` : 'Publication year unavailable'}</span></div>
 					<div className="manga-info-group"><strong>Genres</strong><div className="manga-tags">{manga?.attributes.tags?.slice(0, 10).map((tag) => <span key={tag.id}>{tag.attributes?.name?.en || 'Tag'}</span>)}</div></div>

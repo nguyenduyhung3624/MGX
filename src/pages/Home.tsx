@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getMangaPage, getNewManga, getPopularManga } from '../services/manga'
 import { getTags } from '../services/tags'
+import SaveButton from '../components/manga/SaveButton'
+import { toSavedManga } from '../services/localLibrary'
 import type { Manga, Tag } from '../types/manga'
 
 const pageSize = 20
@@ -200,6 +202,7 @@ const Home = () => {
 
   const totalPages = Math.max(1, Math.ceil((mangaQuery.data?.total ?? 0) / pageSize))
   const mangaItems = (mangaQuery.data?.data ?? []).map((manga) => ({
+    savedManga: toSavedManga(manga),
     id: manga.id,
     title: getMangaTitle(manga),
     chapter: manga.attributes.lastChapter ? `Ch. ${manga.attributes.lastChapter}` : 'Recently updated',
@@ -243,9 +246,9 @@ const Home = () => {
                   <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20 16.5 16.5" /></svg>
                 </button>
               </div>
-              <button aria-label="Account" className="hero-avatar">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.6" /><path d="M4.8 20c.7-3.7 3.4-5.6 7.2-5.6s6.5 1.9 7.2 5.6" /></svg>
-              </button>
+              <Link aria-label="Truyện đã lưu" className="hero-avatar" to="/library">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h12v17l-6-3.5-6 3.5z" /></svg>
+              </Link>
             </div>
 
             <Link className="popular-hero-link" key={featured.id} to={`/manga/${featured.id}`}>
@@ -310,9 +313,7 @@ const Home = () => {
                     <div className="update-meta"><span>MangaDex</span></div>
                   </div>
                 </Link>
-                <button aria-label={`Save ${item.title}`} className="fav-btn" data-manga={item.title}>
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.8c0 5.2-8.8 10.2-8.8 10.2S3.2 14 3.2 8.8A4.8 4.8 0 0 1 12 6.1a4.8 4.8 0 0 1 8.8 2.7Z" /></svg>
-                </button>
+                <SaveButton manga={item.savedManga} compact />
               </article>
             ))}</div>)}
           </div>

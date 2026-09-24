@@ -1,47 +1,60 @@
-import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getFollowedManga } from '../services/user'
-import type { Manga } from '../types/manga'
+import SaveButton from '../components/manga/SaveButton'
+import { useLocalLibrary } from '../hooks/useLocalLibrary'
+import { importLibrary, maxBackupBytes, readLibrary } from '../services/localLibrary'
 
-const getTitle = (manga: Manga) => manga.attributes.title.en || Object.values(manga.attributes.title)[0] || 'Untitled'
-const fallbackCover = 'https://placehold.co/160x230/1c1c1c/ffffff?text=MANGA'
+export default function Library() {
+  const library = useLocalLibrary()
+  const [filter, setFilter] = useState('')
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
+  const [importing, setImporting] = useState(false)
+  const fileInput = useRef<HTMLInputElement>(null)
+  const items = library.saved.filter(item => item.title.toLocaleLowerCase().includes(filter.trim().toLocaleLowerCase()))
+  const progress = new Map(library.progress.map(item => [item.mangaId, item]))
 
-const getCover = (manga: Manga) => {
-  const cover = manga.relationships.find((item) => item.type === 'cover_art')?.attributes?.fileName
-  return cover ? `https://uploads.mangadex.org/covers/${manga.id}/${cover}.256.jpg` : fallbackCover
-}
-
-const handleImageError = (event: React.SyntheticEvent<HTMLImageElement>) => {
-  event.currentTarget.onerror = null
-  event.currentTarget.src = fallbackCover
-}
-
-const Library = () => {
-  const [token, setToken] = useState(() => localStorage.getItem('mangadex-access-token') || '')
-  const [draftToken, setDraftToken] = useState(token)
-  const [tab, setTab] = useState('Reading')
-  const libraryQuery = useQuery({
-    queryKey: ['library', token],
-    queryFn: () => getFollowedManga(token, 100),
-    enabled: Boolean(token),
-  })
-
-  const saveToken = () => {
-    localStorage.setItem('mangadex-access-token', draftToken.trim())
-    setToken(draftToken.trim())
+  const exportBackup = () => {
+    try {
+      const url = URL.createObjectURL(new Blob([JSON.stringify(readLibrary())], { type: 'application/json' }))
+      const anchor = document.createElement('a')
+      anchor.href = url
+      anchor.download = `mgx-library-${new Date().toISOString().slice(0, 10)}.json`
+      anchor.click()
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+      setError(''); setMessage('Đã xuất danh sách truyện và chương đang đọc.')
+    } catch { setError('Không thể xuất sao lưu. Hãy kiểm tra quyền lưu dữ liệu của trình duyệt.'); setMessage('') }
   }
 
-  if (!token) {
-    return <section className="library-empty"><h1>Your library</h1><p>Connect your MangaDex access token to load followed manga.</p><input aria-label="MangaDex access token" onChange={(event) => setDraftToken(event.target.value)} placeholder="Paste access token" type="password" value={draftToken} /><button onClick={saveToken}>Connect</button></section>
-  }
-
-  const manga = libraryQuery.data ?? []
-  return <section className="library-page">
-    <div className="content-head"><h1>Library</h1><button className="library-disconnect" onClick={() => { localStorage.removeItem('mangadex-access-token'); setToken('') }}>Disconnect</button></div>
-    <div className="library-tabs">{['Reading', 'Plan to Read', 'Completed', 'On Hold', 'Re-reading', 'Dropped'].map((item) => <button className={tab === item ? 'active' : ''} key={item} onClick={() => setTab(item)}>{item}</button>)}</div>
-    {libraryQuery.isLoading ? <div className="state-message">Loading library...</div> : libraryQuery.isError ? <div className="state-message">Unable to load library. Check your token.</div> : manga.length === 0 ? <div className="state-message">No followed manga yet.</div> : <div className="library-grid">{manga.map((item) => <Link className="library-card" key={item.id} to={`/manga/${item.id}`}><img alt={getTitle(item)} onError={handleImageError} src={getCover(item)} /><div><h2>{getTitle(item)}</h2><span>{item.attributes.status}</span><p>{item.attributes.lastChapter ? `Chapter ${item.attributes.lastChapter}` : 'No chapters yet'}</p></div></Link>)}</div>}
+  return <section className="saved-library">
+    <div className="content-head"><h1>Truyện đã lưu</h1><span>{library.saved.length} truyện</span></div>
+    <p className="library-note">Lưu trên trình duyệt này, không cần tài khoản. Danh sách không tự đồng bộ giữa các thiết bị và sẽ mất nếu bạn xóa dữ liệu trình duyệt.</p>
+    <div className="library-toolbar">
+      <input type="search" aria-label="Tìm trong truyện đã lưu" placeholder="Tìm trong danh sách…" value={filter} onChange={event => setFilter(event.target.value)} />
+      <button onClick={exportBackup} disabled={Boolean(library.error)}>Xuất sao lưu</button>
+      <button onClick={() => fileInput.current?.click()} disabled={importing || Boolean(library.error)}>{importing ? 'Đang nhập…' : 'Nhập sao lưu'}</button>
+      <input ref={fileInput} hidden type="file" accept="application/json,.json" aria-label="File sao lưu MGX" onChange={async event => {
+        const file = event.target.files?.[0]
+        event.target.value = ''
+        if (!file) return
+        setImporting(true); setError(''); setMessage('')
+        try {
+          if (file.size > maxBackupBytes) throw new Error('File sao lưu phải nhỏ hơn 2 MB.')
+          const added = importLibrary(await file.text())
+          setMessage(`Đã nhập ${added} truyện mới. Giữ nguyên truyện hiện có và cập nhật chương đọc mới hơn.`)
+        } catch (cause) { setError(cause instanceof Error ? cause.message : 'Không thể nhập sao lưu.') }
+        finally { setImporting(false) }
+      }} />
+    </div>
+    <p className="library-note">Nhập sao lưu sẽ gộp danh sách, không tạo truyện trùng.</p>
+    {(error || library.error) && <p className="save-error" role="alert">{error || library.error}</p>}
+    {message && <p role="status">{message}</p>}
+    {!library.error && (items.length === 0 ? <div className="state-message"><p>{library.saved.length ? 'Không tìm thấy truyện phù hợp.' : 'Bạn chưa lưu truyện nào. Bấm tim ở trang chủ, tìm kiếm hoặc trang truyện để lưu.'}</p><Link to="/search">Tìm truyện →</Link></div> : <div className="saved-grid">{items.map(item => {
+      const lastRead = progress.get(item.id)
+      return <article className="saved-card" key={item.id}>
+        <Link className="saved-cover" to={`/manga/${item.id}`} aria-label={`Xem ${item.title}`}>{item.cover ? <img loading="lazy" src={`/api/cover?mangaId=${encodeURIComponent(item.id)}&fileName=${encodeURIComponent(item.cover)}&size=256`} alt={item.title} onError={event => { event.currentTarget.style.visibility = 'hidden' }} /> : <span>MGX</span>}</Link>
+        <div className="saved-card-copy"><Link to={`/manga/${item.id}`}><h2>{item.title}</h2></Link><p>{item.status}</p>{lastRead && <Link className="continue-reading" to={`/read/${lastRead.chapterId}`}>Đọc tiếp · Chương {lastRead.chapter || '?'}</Link>}<SaveButton manga={item} /></div>
+      </article>
+    })}</div>)}
   </section>
 }
-
-export default Library

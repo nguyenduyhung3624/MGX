@@ -1,9 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
+import { useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getAtHomeServer, getChapterById } from '../services/chapter'
+import { rememberChapter } from '../services/localLibrary'
 
 const ReaderPage = () => {
 	const { chapterId } = useParams<{ chapterId: string }>()
+	const recordedChapter = useRef('')
+	const [storageError, setStorageError] = useState('')
 	const chapterQuery = useQuery({
 		queryKey: ['chapter', chapterId],
 		queryFn: () => getChapterById(chapterId as string),
@@ -39,9 +43,15 @@ const ReaderPage = () => {
 				<strong>Chapter {chapterQuery.data?.attributes.chapter || '?'}</strong>
 				<span>{pageFiles.length} pages</span>
 			</header>
+			{storageError && <p className="save-error" role="alert">{storageError}</p>}
 			<div className="reader-pages">
 				{pageFiles.map((file, index) => (
-					<img key={file} src={`/api/page?url=${encodeURIComponent(`${baseUrl}/${quality}/${chapter.hash}/${file}`)}`} alt={`Page ${index + 1}`} />
+					<img key={file} src={`/api/page?url=${encodeURIComponent(`${baseUrl}/${quality}/${chapter.hash}/${file}`)}`} alt={`Page ${index + 1}`} onLoad={() => {
+						if (!mangaId || !chapterId || recordedChapter.current === chapterId) return
+						recordedChapter.current = chapterId
+						try { rememberChapter(mangaId, chapterId, chapterQuery.data?.attributes.chapter || '?'); setStorageError('') }
+						catch { setStorageError('Không thể ghi nhớ chương đang đọc trên trình duyệt này.') }
+					}} />
 				))}
 			</div>
 		</main>
