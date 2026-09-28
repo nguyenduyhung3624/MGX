@@ -1934,7 +1934,6 @@ section {
 }
 
 .reader-mode-switch button,
-.reader-page-buttons button,
 .reader-control-button {
   min-height: 36px;
   padding: 8px 12px;
@@ -1951,13 +1950,11 @@ section {
 }
 
 .reader-mode-switch button:not(.active):hover,
-.reader-page-buttons button:hover:not(:disabled),
 .reader-control-button:hover:not(:disabled) {
   background: #292929;
 }
 
 .reader-mode-switch button:disabled,
-.reader-page-buttons button:disabled,
 .reader-control-button:disabled {
   cursor: not-allowed;
   opacity: 0.38;
@@ -1974,8 +1971,7 @@ section {
   background: #0e0e0e;
 }
 
-.reader-chapter-controls,
-.reader-page-buttons {
+.reader-chapter-controls {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   width: min(900px, 100%);
@@ -2099,14 +2095,6 @@ section {
   gap: 10px;
   padding-bottom: 36px;
   background: #0e0e0e;
-}
-
-.reader-page-buttons {
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  color: #999;
-  font-size: 12px;
-  text-align: center;
 }
 
 .footer {
@@ -2620,13 +2608,6 @@ section {
     text-overflow: ellipsis;
   }
 
-  .reader-page-buttons {
-    grid-template-columns: 1fr;
-  }
-
-  .reader-page-buttons span {
-    display: none;
-  }
 }
 
 /* Square surfaces; keyboard focus remains visible. */

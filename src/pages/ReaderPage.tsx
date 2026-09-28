@@ -171,7 +171,6 @@ const ReaderPage = () => {
 			)}
 
 			<footer className="reader-footer-controls">
-				{readerMode === 'paged' && <div className="reader-page-buttons"><button type="button" disabled={activePage === 0} onClick={() => movePage(-1)}>← Previous page</button><span>Page {activePage + 1} / {pageFiles.length}</span><button type="button" disabled={activePage === pageFiles.length - 1} onClick={() => movePage(1)}>Next page →</button></div>}
 				<ChapterControls previous={previousChapter} next={nextChapter} loading={chapterNavigationQuery.isLoading} />
 			</footer>
 		</main>
