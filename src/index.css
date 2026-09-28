@@ -1893,7 +1893,7 @@ section {
 .reader-bar {
   position: sticky;
   top: 0;
-  z-index: 2;
+  z-index: 4;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1912,6 +1912,90 @@ section {
   color: #999;
 }
 
+.reader-title {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.reader-title strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reader-mode-switch {
+  display: inline-flex;
+  flex: 0 0 auto;
+  background: #1b1b1b;
+}
+
+.reader-mode-switch button,
+.reader-page-buttons button,
+.reader-control-button {
+  min-height: 36px;
+  padding: 8px 12px;
+  background: #1b1b1b;
+  color: #e8e8e8;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.reader-mode-switch button.active {
+  background: #ff8069;
+  color: #191919;
+  font-weight: 800;
+}
+
+.reader-mode-switch button:not(.active):hover,
+.reader-page-buttons button:hover:not(:disabled),
+.reader-control-button:hover:not(:disabled) {
+  background: #292929;
+}
+
+.reader-mode-switch button:disabled,
+.reader-page-buttons button:disabled,
+.reader-control-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.38;
+}
+
+.reader-navigation-top,
+.reader-footer-controls {
+  display: flex;
+  justify-content: center;
+  padding: 12px 16px;
+}
+
+.reader-navigation-top {
+  background: #0e0e0e;
+}
+
+.reader-chapter-controls,
+.reader-page-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: min(900px, 100%);
+  gap: 8px;
+}
+
+.reader-control-button {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  text-align: center;
+}
+
+.reader-control-button span {
+  color: #ff8069;
+  font-weight: 800;
+}
+
 .reader-pages {
   display: flex;
   flex-direction: column;
@@ -1923,6 +2007,100 @@ section {
 .reader-pages img {
   width: min(900px, 100%);
   height: auto;
+}
+
+.reader-paged {
+  position: relative;
+  display: grid;
+  min-height: calc(100vh - 142px);
+  place-items: center;
+  padding: 20px max(12px, calc((100vw - 1120px) / 2));
+}
+
+.reader-single-page {
+  display: block;
+  width: min(100%, 1080px);
+  max-height: calc(100vh - 180px);
+  object-fit: contain;
+}
+
+.reader-page-zone {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  bottom: 0;
+  display: grid;
+  width: 24%;
+  place-items: center;
+  background: transparent;
+  color: #fff;
+  font-size: 52px;
+  opacity: 0;
+  transition: opacity 160ms ease, background 160ms ease;
+}
+
+.reader-page-zone:hover:not(:disabled),
+.reader-page-zone:focus-visible {
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.3), transparent);
+  opacity: 1;
+}
+
+.reader-page-zone:disabled {
+  cursor: default;
+}
+
+.reader-page-zone-prev {
+  left: 0;
+  cursor: w-resize;
+}
+
+.reader-page-zone-next {
+  right: 0;
+  cursor: e-resize;
+}
+
+.reader-page-zone-next:hover:not(:disabled),
+.reader-page-zone-next:focus-visible {
+  background: linear-gradient(270deg, rgba(0, 0, 0, 0.3), transparent);
+}
+
+.reader-page-counter {
+  position: absolute;
+  right: 18px;
+  bottom: 14px;
+  z-index: 2;
+  padding: 7px 10px;
+  background: rgba(0, 0, 0, 0.72);
+  color: #e8e8e8;
+  font-size: 12px;
+}
+
+.reader-page-hint {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  z-index: 2;
+  margin: 0;
+  transform: translateX(-50%);
+  color: #8f8f8f;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.reader-footer-controls {
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 36px;
+  background: #0e0e0e;
+}
+
+.reader-page-buttons {
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  color: #999;
+  font-size: 12px;
+  text-align: center;
 }
 
 .footer {
@@ -2369,6 +2547,30 @@ section {
     font-size: 12px;
   }
 
+  .reader-title {
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .reader-mode-switch button {
+    min-height: 32px;
+    padding: 7px 9px;
+    font-size: 11px;
+  }
+
+  .reader-control-button {
+    min-height: 40px;
+    padding: 8px 7px;
+    font-size: 11px;
+  }
+
+  .reader-navigation-top,
+  .reader-footer-controls {
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
   .reader-pages {
     gap: 0;
     padding: 0 0 32px;
@@ -2378,6 +2580,42 @@ section {
     display: block;
     width: 100%;
     max-width: 100%;
+  }
+
+  .reader-paged {
+    min-height: calc(100svh - 158px);
+    padding: 0 0 28px;
+  }
+
+  .reader-single-page {
+    width: 100%;
+    max-height: none;
+  }
+
+  .reader-page-zone {
+    width: 28%;
+    font-size: 42px;
+    opacity: 0.24;
+  }
+
+  .reader-page-counter {
+    right: 10px;
+    bottom: 36px;
+  }
+
+  .reader-page-hint {
+    bottom: 10px;
+    max-width: calc(100% - 20px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .reader-page-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .reader-page-buttons span {
+    display: none;
   }
 }
 
