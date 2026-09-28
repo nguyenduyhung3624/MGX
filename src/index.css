@@ -2017,9 +2017,14 @@ section {
   padding: 20px max(12px, calc((100vw - 1120px) / 2));
 }
 
+.reader-image-stage {
+  position: relative;
+  width: min(100%, 1080px);
+}
+
 .reader-single-page {
   display: block;
-  width: min(100%, 1080px);
+  width: 100%;
   max-height: calc(100vh - 180px);
   object-fit: contain;
 }
@@ -2036,6 +2041,7 @@ section {
   color: #fff;
   font-size: 52px;
   opacity: 0;
+  touch-action: manipulation;
   transition: opacity 160ms ease, background 160ms ease;
 }
 
@@ -2592,10 +2598,14 @@ section {
     max-height: none;
   }
 
+  .reader-image-stage {
+    width: 100%;
+  }
+
   .reader-page-zone {
-    width: 28%;
+    width: 50%;
     font-size: 42px;
-    opacity: 0.24;
+    opacity: 0;
   }
 
   .reader-page-counter {

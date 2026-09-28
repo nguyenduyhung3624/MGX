@@ -32,14 +32,14 @@ type ChapterControlsProps = {
 const ChapterControls = ({ previous, next, loading = false }: ChapterControlsProps) => (
 	<nav className="reader-chapter-controls" aria-label="Chapter navigation">
 		{previous ? (
-			<Link to={`/read/${previous.id}`} className="reader-control-button">← Chap trước <span>{previous.chapter || '?'}</span></Link>
+			<Link to={`/read/${previous.id}`} className="reader-control-button">← Previous chapter <span>{previous.chapter || '?'}</span></Link>
 		) : (
-			<button type="button" className="reader-control-button" disabled>{loading ? 'Đang tải chap…' : '← Chap trước'}</button>
+			<button type="button" className="reader-control-button" disabled>{loading ? 'Loading chapters…' : '← Previous chapter'}</button>
 		)}
 		{next ? (
-			<Link to={`/read/${next.id}`} className="reader-control-button">Chap sau <span>{next.chapter || '?'}</span> →</Link>
+			<Link to={`/read/${next.id}`} className="reader-control-button">Next chapter <span>{next.chapter || '?'}</span> →</Link>
 		) : (
-			<button type="button" className="reader-control-button" disabled>{loading ? 'Đang tải chap…' : 'Chap sau →'}</button>
+			<button type="button" className="reader-control-button" disabled>{loading ? 'Loading chapters…' : 'Next chapter →'}</button>
 		)}
 	</nav>
 )
@@ -134,7 +134,7 @@ const ReaderPage = () => {
 			rememberChapter(mangaId, chapterId, chapterQuery.data?.attributes.chapter || '?')
 			setStorageError('')
 		} catch {
-			setStorageError('Không thể ghi nhớ chương đang đọc trên trình duyệt này.')
+			setStorageError('Could not save reading progress in this browser.')
 		}
 	}
 	const movePage = (direction: -1 | 1) => setActivePage((current) => Math.min(pageFiles.length - 1, Math.max(0, current + direction)))
@@ -146,8 +146,8 @@ const ReaderPage = () => {
 				<Link to={mangaId ? `/manga/${mangaId}` : '/'} className="reader-back">← Manga</Link>
 				<div className="reader-title"><strong>Chapter {chapterQuery.data?.attributes.chapter || '?'}</strong><span>{readerMode === 'paged' ? `Page ${activePage + 1} / ${pageFiles.length}` : `${pageFiles.length} pages`}</span></div>
 				<div className="reader-mode-switch" role="group" aria-label="Reader mode">
-					<button type="button" className={readerMode === 'scroll' ? 'active' : ''} onClick={() => setReaderMode('scroll')}>Cuộn</button>
-					<button type="button" className={readerMode === 'paged' ? 'active' : ''} onClick={() => setReaderMode('paged')}>Bấm</button>
+					<button type="button" className={readerMode === 'scroll' ? 'active' : ''} onClick={() => setReaderMode('scroll')}>Scroll</button>
+					<button type="button" className={readerMode === 'paged' ? 'active' : ''} onClick={() => setReaderMode('paged')}>Click</button>
 				</div>
 			</header>
 
@@ -160,16 +160,18 @@ const ReaderPage = () => {
 				</div>
 			) : (
 				<section className="reader-paged" aria-label={`Page ${activePage + 1} of ${pageFiles.length}`}>
-					<button type="button" className="reader-page-zone reader-page-zone-prev" aria-label="Previous page" disabled={activePage === 0} onClick={() => movePage(-1)}><span>‹</span></button>
-					<img key={shownFile} className="reader-single-page" src={imageUrl(shownFile)} alt={`Page ${activePage + 1}`} onLoad={markChapterRead} />
-					<button type="button" className="reader-page-zone reader-page-zone-next" aria-label="Next page" disabled={activePage === pageFiles.length - 1} onClick={() => movePage(1)}><span>›</span></button>
-					<div className="reader-page-counter" aria-live="polite">{activePage + 1} / {pageFiles.length}</div>
-					<p className="reader-page-hint">Bấm hai bên ảnh hoặc dùng ← → để chuyển trang</p>
+					<div className="reader-image-stage">
+						<button type="button" className="reader-page-zone reader-page-zone-prev" aria-label="Previous page" disabled={activePage === 0} onClick={() => movePage(-1)}><span>‹</span></button>
+						<img key={shownFile} className="reader-single-page" src={imageUrl(shownFile)} alt={`Page ${activePage + 1}`} onLoad={markChapterRead} />
+						<button type="button" className="reader-page-zone reader-page-zone-next" aria-label="Next page" disabled={activePage === pageFiles.length - 1} onClick={() => movePage(1)}><span>›</span></button>
+						<div className="reader-page-counter" aria-live="polite">{activePage + 1} / {pageFiles.length}</div>
+					</div>
+					<p className="reader-page-hint">Click either side of the image or use ← → to change pages</p>
 				</section>
 			)}
 
 			<footer className="reader-footer-controls">
-				{readerMode === 'paged' && <div className="reader-page-buttons"><button type="button" disabled={activePage === 0} onClick={() => movePage(-1)}>← Ảnh trước</button><span>Ảnh {activePage + 1} / {pageFiles.length}</span><button type="button" disabled={activePage === pageFiles.length - 1} onClick={() => movePage(1)}>Ảnh sau →</button></div>}
+				{readerMode === 'paged' && <div className="reader-page-buttons"><button type="button" disabled={activePage === 0} onClick={() => movePage(-1)}>← Previous page</button><span>Page {activePage + 1} / {pageFiles.length}</span><button type="button" disabled={activePage === pageFiles.length - 1} onClick={() => movePage(1)}>Next page →</button></div>}
 				<ChapterControls previous={previousChapter} next={nextChapter} loading={chapterNavigationQuery.isLoading} />
 			</footer>
 		</main>
