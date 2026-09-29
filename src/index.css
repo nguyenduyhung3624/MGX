@@ -2686,3 +2686,10 @@ button, input, select, .search-box, .update-row, .chapter-item, .manga-info-pane
 }
 .reader-mode-paged .reader-page-zone { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; user-select: none; }
 @media (max-width: 620px) { .reader-mode-paged .reader-single-page { min-height: 0; } }
+@media (max-width: 620px) {
+  /* The image only takes its natural height; don't force the wrapper to fill
+     the screen or a dark gap shows below shorter pages when paged mode opens. */
+  .reader-mode-paged .reader-single-page { min-height: 0; }
+  .reader-mode-paged .reader-paged { min-height: 0; }
+  .reader-mode-paged .reader-image-stage { min-height: 0; }
+}
