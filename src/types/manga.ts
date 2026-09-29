@@ -49,6 +49,7 @@ export interface MangaDetailResponse {
 }
 
 export interface AggregateChapter {
+  others?: string[];
   isUnavailable?: boolean;
   id: string;
   chapter: string;
