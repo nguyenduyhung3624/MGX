@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { getMangaPage, getNewManga, getPopularManga } from '../services/manga'
+import { getLatestManga, getMangaPage, getNewManga, getPopularManga } from '../services/manga'
 import { getTags } from '../services/tags'
 import SaveButton from '../components/manga/SaveButton'
 import { toSavedManga } from '../services/localLibrary'
@@ -72,37 +72,25 @@ type MangaRailProps = {
   loading?: boolean
 }
 
-const MangaRail = ({ title, items, loading }: MangaRailProps) => {
-  const [page, setPage] = useState(0)
-  const pageSize = 5
-  const totalPages = Math.max(1, Math.ceil(items.length / pageSize))
-  const visibleItems = items.slice(page * pageSize, page * pageSize + pageSize)
-
-  return (
-    <section className="manga-rail">
-      <div className="rail-heading">
-        <h2>{title}</h2>
-        <button aria-label={`Next ${title}`} onClick={() => setPage((current) => (current + 1) % totalPages)}>→</button>
+const MangaRail = ({ title, items, loading }: MangaRailProps) => (
+  <section className="manga-rail">
+    <div className="rail-heading">
+      <h2>{title}</h2>
+      <span aria-hidden="true">→</span>
+    </div>
+    {loading ? <div className="state-message">Loading...</div> : (
+      <div className="rail-grid">
+        {items.map((manga) => <Link className="rail-card" key={manga.id} to={`/manga/${manga.id}`}>
+          <div className="rail-cover">
+            <img alt={getMangaTitle(manga)} loading="lazy" decoding="async" onError={handleImageError} src={getCoverUrl(manga, 512)} />
+            {getFlagUrl(manga) && <img alt="" className="rail-flag" onError={handleImageError} src={getFlagUrl(manga)} />}
+          </div>
+          <span>{getMangaTitle(manga)}</span>
+        </Link>)}
       </div>
-      {loading ? <div className="state-message">Loading...</div> : (
-        <>
-          <div className="rail-grid">
-            {visibleItems.map((manga) => <Link className="rail-card" key={manga.id} to={`/manga/${manga.id}`}>
-              <div className="rail-cover">
-                <img alt={getMangaTitle(manga)} onError={handleImageError} src={getCoverUrl(manga, 512)} />
-                {getFlagUrl(manga) && <img alt="" className="rail-flag" onError={handleImageError} src={getFlagUrl(manga)} />}
-              </div>
-              <span>{getMangaTitle(manga)}</span>
-            </Link>)}
-          </div>
-          <div className="rail-dots" aria-label={`${title} pages`}>
-            {Array.from({ length: totalPages }, (_, index) => <button aria-label={`Show ${title} page ${index + 1}`} className={index === page ? 'active' : ''} key={index} onClick={() => setPage(index)} />)}
-          </div>
-        </>
-      )}
-    </section>
-  )
-}
+    )}
+  </section>
+)
 
 const Home = () => {
   const navigate = useNavigate()
@@ -138,6 +126,12 @@ const Home = () => {
     placeholderData: (previous) => previous,
   })
 
+  const latestQuery = useQuery({
+    queryKey: ['home-latest-updates'],
+    queryFn: () => getLatestManga(6),
+    staleTime: 60 * 1000,
+    refetchInterval: 2 * 60 * 1000,
+  })
   const popularQuery = useQuery({
     queryKey: ['popular-manga'],
     queryFn: () => getPopularManga(8),
@@ -277,55 +271,24 @@ const Home = () => {
         ) : <div className="state-message">No popular manga available.</div>}
       </section>
 
-      <section id="updates">
-        <div className="content-head">
-          <h1>Manga library</h1>
-          <span className="chapter-count">{mangaQuery.data?.total ?? 0} results</span>
+      <section id="updates" className="home-latest">
+        <div className="rail-heading">
+          <h2>Latest Updates</h2>
+          <Link aria-label="Browse manga" to="/search">→</Link>
         </div>
-
-        <div className="manga-filters">
-          <select aria-label="Filter by genre" onChange={(event) => updateFilters(() => setTagId(event.target.value))} value={tagId}>
-            <option value="">All genres</option>
-            {(tagsQuery.data ?? []).slice(0, 40).map((tag) => <option key={tag.id} value={tag.id}>{getTagName(tag)}</option>)}
-          </select>
-          <select aria-label="Filter by status" onChange={(event) => updateFilters(() => setStatus(event.target.value))} value={status}>
-            <option value="">All statuses</option>
-            {statuses.map((item) => <option key={item} value={item}>{item[0].toUpperCase() + item.slice(1)}</option>)}
-          </select>
-          <input aria-label="Filter by year" max={new Date().getFullYear()} min="1900" onChange={(event) => updateFilters(() => setYear(event.target.value))} placeholder="Year" type="number" value={year} />
-          <select aria-label="Sort manga" onChange={(event) => updateFilters(() => setSort(event.target.value))} value={sort}>
-            <option value="latest">Latest updates</option>
-            <option value="popular">Most followed</option>
-            <option value="newest">Recently added</option>
-            <option value="title">Title A-Z</option>
-          </select>
-        </div>
-
-        {mangaQuery.isLoading ? <div className="state-message">Loading manga...</div> : mangaQuery.isError ? <div className="state-message">Unable to load manga.</div> : mangaItems.length === 0 ? <div className="state-message">No manga matched your filters.</div> : (
-          <div className="update-grid">
-            {mangaColumns.map((column, columnIndex) => <div className="update-column" key={columnIndex}>{column.map((item) => (
-              <article className="update-row" data-manga={item.title} key={item.id}>
-                <Link aria-label={`View ${item.title}`} className="update-link" to={`/manga/${item.id}`}>
-                  <div className="update-thumb"><img alt={item.title} src={item.image} /></div>
-                  <div className="update-body">
-                    <h3>{item.title}</h3>
-                    <span className="update-chapter"><span className="flag">EN</span>{item.chapter}</span>
-                    <div className="update-meta"><span>MangaDex</span></div>
-                  </div>
-                </Link>
-                <SaveButton manga={item.savedManga} compact />
-              </article>
-            ))}</div>)}
+        {latestQuery.isLoading ? <div className="state-message">Loading updates...</div> : latestQuery.isError ? <div className="state-message">Unable to load updates.</div> : (
+          <div className="latest-list">
+            {(latestQuery.data?.data ?? []).map((manga) => (
+              <Link className="latest-row" key={manga.id} to={`/manga/${manga.id}`}>
+                <img alt={getMangaTitle(manga)} loading="lazy" decoding="async" onError={handleImageError} src={getCoverUrl(manga)} />
+                <div>
+                  <strong>{getMangaTitle(manga)}</strong>
+                  <span>EN · {manga.attributes.lastChapter ? `Ch. ${manga.attributes.lastChapter}` : 'Recently updated'}</span>
+                </div>
+              </Link>
+            ))}
           </div>
         )}
-
-        <div className="manga-pagination">
-          <button disabled={page === 1} onClick={() => setPage((current) => current - 1)}>Previous</button>
-          <span className="current-page">Current page: {page}</span>
-          <label>Go to page <input aria-label="Page number" min="1" max={totalPages} onChange={(event) => setPageInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') goToPage() }} type="number" value={pageInput} /> of {totalPages}</label>
-          <button onClick={goToPage}>Go</button>
-          <button disabled={page === totalPages} onClick={() => setPage((current) => current + 1)}>Next</button>
-        </div>
       </section>
 
 
