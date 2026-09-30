@@ -2833,3 +2833,22 @@ button, input, select, .search-box, .update-row, .chapter-item, .manga-info-pane
     padding-right: 0;
   }
 }
+
+/* Desktop rails: never reveal a clipped preview card at the right edge. */
+@media (min-width: 641px) {
+  .manga-rail {
+    padding-right: var(--home-gutter, 28px);
+  }
+  .manga-rail .rail-heading {
+    margin-right: 0;
+  }
+  .manga-rail .rail-viewport {
+    width: 100%;
+    overflow: hidden;
+  }
+  .manga-rail .rail-grid {
+    grid-auto-columns: calc((100% - 72px) / 5);
+    gap: 18px;
+    padding-right: 0;
+  }
+}
