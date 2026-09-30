@@ -2826,6 +2826,10 @@ button, input, select, .search-box, .update-row, .chapter-item, .manga-info-pane
   .manga-rail {
     padding-right: 20px;
   }
+  .theme-switch {
+    margin-top: 4px;
+  }
+
   .manga-rail .rail-heading {
     margin-right: 0;
   }
