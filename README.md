@@ -1,42 +1,67 @@
-# React + TypeScript + Vite
+# MGX
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+**MGX** is a responsive manga discovery and reading web app powered by the [MangaDex API](https://api.mangadex.org/docs/). Browse titles, read chapters, and keep a personal library without creating an account.
 
-Currently, two official plugins are available:
+> MGX is an independent, unofficial project and is not affiliated with or endorsed by MangaDex.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+- **Discover manga:** popular titles, latest updates, recommendations, seasonal picks, and recently added manga.
+- **Search and browse:** find titles and open manga details and chapter lists.
+- **Read your way:** switch between scrolling and click-to-advance reading modes, with previous/next chapter navigation.
+- **Personal library:** save manga and continue from your last recorded reading position.
+- **Backup and restore:** export and import your library as JSON.
+- **Responsive layout:** desktop and mobile navigation, plus light and dark themes.
+- **Image delivery:** serverless proxies for MangaDex covers and chapter pages, with nearby-page preloading in the reader.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Manga and chapter availability depend on MangaDex and the translations available through its API. Discovery feeds are based on MangaDex queries; section names do not necessarily correspond to official MangaDex categories.
 
-## Expanding the Oxlint configuration
+## Tech stack
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+- React 19, TypeScript, Vite 8
+- React Router 7
+- TanStack Query 5
+- Axios
+- Tailwind CSS 4 and custom CSS
+- Vercel serverless functions for API and image proxying
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+## Getting started
+
+**Requirements:** Node.js and npm. Node.js 24 is recommended for the included tests.
+
+```bash
+git clone https://github.com/nguyenduyhung3624/MGX.git
+cd MGX
+npm install
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Vite serves the frontend locally. The app also uses Vercel routes under `/api/*`, so a plain `npm run dev` session does **not** run those serverless functions. For end-to-end development with the API and image proxies, use a Vercel-compatible local environment or deploy the project to Vercel.
+
+### Available commands
+
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the Vite development server |
+| `npm run build` | Type-check and create a production build |
+| `npm run preview` | Preview the production frontend |
+| `npm run lint` | Run Oxlint |
+| `npm test` | Run the Node.js test suite |
 
 ## Local reading library
 
-Use the heart button on the home page, search results, or manga details to save a title. `/library` lists saved titles and offers JSON backup export/import. No account, MangaDex token, or separate backend is required.
+Use the save button on manga listings or details to add a title to your library. The `/library` page lists saved manga and supports JSON backup export/import. No account, MangaDex token, or separate database is required.
 
-Data is stored under `mgx-library-v1` in this site's browser localStorage. It persists across reloads and updates other tabs on the same origin, but does not sync across devices. Clearing site data removes it. Import merges saved titles by MangaDex ID and keeps the newer reading position; invalid files leave existing data unchanged. Limits: 2,000 saved titles and a 2 MB backup.
+Library data is stored in your browser's `localStorage` under `mgx-library-v1`. It persists across reloads and updates other tabs on the same origin, but **does not sync across devices**. Clearing the site's data removes the local library unless you have exported a backup.
 
-The reader remembers the last chapter only after a page image loads successfully. Unavailable chapters and failed page requests do not advance the reading position. Saved titles expose a continue-reading link; removing a saved title keeps its reading position.
+Import merges saved titles by MangaDex ID and keeps the newer reading position. Invalid backups leave existing data unchanged. Current limits are 2,000 saved titles and a 2 MB backup file.
 
-Run `npm test` with Node.js 24 (or a Node version supporting `--experimental-strip-types`) for storage, merge, validation, and quota-failure checks. Run `npm run build` and `npm run lint` for app checks.
+The reader records the last chapter only after a page image loads successfully. Unavailable chapters or failed image requests do not advance your reading position. Removing a saved title does not erase its reading position.
+
+## Deployment
+
+The project is configured for Vercel, including serverless routes used to access MangaDex and proxy images. Connect the repository to Vercel and deploy using the project's configuration. If you use a private repository, ensure Vercel retains access to it.
+
+## Credits and disclaimer
+
+Manga metadata, chapter information, and images are provided by [MangaDex](https://mangadex.org/) and their respective contributors and rights holders. MGX does not claim ownership of third-party content. Please respect the original creators and MangaDex's terms of use.
