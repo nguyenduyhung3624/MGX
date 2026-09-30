@@ -5,6 +5,7 @@ import { getAtHomeServer, getChapterById } from '../services/chapter'
 import { getMangaAggregate } from '../services/manga'
 import { rememberChapter } from '../services/localLibrary'
 import type { AggregateChapter } from '../types/manga'
+import { preloadPages } from '../services/preloadPages'
 
 type ReaderMode = 'scroll' | 'paged'
 
@@ -54,6 +55,7 @@ const ReaderPage = () => {
 	const [storageError, setStorageError] = useState('')
 	const [readerMode, setReaderMode] = useState<ReaderMode>(getStoredMode)
 	const [pageState, setPageState] = useState({ chapterId: '', page: 0 })
+	const preload = useRef<ReturnType<typeof preloadPages> | null>(null)
 
 	const chapterQuery = useQuery({
 		queryKey: ['chapter', chapterId],
@@ -83,6 +85,20 @@ const ReaderPage = () => {
 	const nextChapter = currentChapterIndex >= 0 ? navigationChapters[currentChapterIndex + 1] : undefined
 	const pageFiles = pagesQuery.data ? (pagesQuery.data.chapter.data.length ? pagesQuery.data.chapter.data : pagesQuery.data.chapter.dataSaver) : []
 	const activePage = pageState.chapterId === chapterId ? pageState.page : 0
+	const pageUrls = useMemo(() => {
+		if (!pagesQuery.data) return []
+		const { baseUrl, chapter } = pagesQuery.data
+		const quality = chapter.data.length ? 'data' : 'data-saver'
+		const files = chapter.data.length ? chapter.data : chapter.dataSaver
+		return files.map(file => `/api/page?url=${encodeURIComponent(`${baseUrl}/${quality}/${chapter.hash}/${file}`)}`)
+	}, [pagesQuery.data])
+	useEffect(() => {
+		if (readerMode !== 'paged' || chapterQuery.data?.attributes.isUnavailable || chapterQuery.data?.attributes.externalUrl) return
+		const session = preloadPages(pageUrls)
+		preload.current = session
+		return () => { session.dispose(); preload.current = null }
+	}, [pageUrls, chapterId, readerMode, chapterQuery.data?.attributes.isUnavailable, chapterQuery.data?.attributes.externalUrl])
+	useEffect(() => { preload.current?.prioritize(activePage) }, [activePage, pageUrls, readerMode])
 	const setActivePage = useCallback((update: number | ((current: number) => number)) => setPageState((current) => {
 		const currentPage = current.chapterId === chapterId ? current.page : 0
 		return { chapterId: chapterId || '', page: typeof update === 'function' ? update(currentPage) : update }
