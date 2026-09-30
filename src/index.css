@@ -2789,3 +2789,24 @@ button, input, select, .search-box, .update-row, .chapter-item, .manga-info-pane
 .manga-rail .rail-grid::-webkit-scrollbar {
   display: none;
 }
+
+.manga-rail .rail-heading button {
+  border: 0;
+  padding: 4px 12px;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 28px;
+  cursor: pointer;
+}
+.manga-rail .rail-grid {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.manga-rail {
+  min-width: 0;
+  overflow: hidden;
+}
