@@ -1,46 +1,51 @@
-// Keep loaded images alive for the current chapter and bound background traffic.
+// Preload only a small sliding window around the current page.
+// This keeps click mode responsive without downloading the whole chapter in the background.
 export function preloadPages(urls: string[], createImage = () => new Image()) {
   const images = new Map<number, HTMLImageElement>()
-  let pending = urls.map((_, index) => index)
-  let running = 0
   let disposed = false
+  let currentIndex = 0
 
-  const pump = () => {
-    while (!disposed && running < 4 && pending.length) {
-      const index = pending.shift()!
-      const image = createImage()
-      images.set(index, image)
-      running++
-      image.decoding = 'async'
-      image.fetchPriority = index < 3 ? 'high' : 'low'
-      const done = () => {
+  const load = (index: number, priority: 'high' | 'low' = 'low') => {
+    if (disposed || index < 0 || index >= urls.length || images.has(index)) return
+    const image = createImage()
+    images.set(index, image)
+    image.decoding = 'async'
+    image.fetchPriority = priority
+    image.src = urls[index]
+  }
+
+  const fillWindow = (index: number) => {
+    // Current page is already rendered by React, but preloading it also warms
+    // the browser cache before/while the visible <img> is mounted.
+    load(index, 'high')
+    load(index + 1, 'high')
+    load(index + 2, 'low')
+
+    // Drop completed pages that are far away so the preloader itself stays small.
+    for (const [page, image] of images) {
+      if (page < index - 1 || page > index + 2) {
         image.onload = null
         image.onerror = null
-        running--
-        if (!disposed) pump()
+        if (!image.complete) image.removeAttribute('src')
+        images.delete(page)
       }
-      image.onload = done
-      image.onerror = done
-      image.src = urls[index]
     }
   }
-  pump()
+
+  fillWindow(currentIndex)
+
   return {
     prioritize(index: number) {
-      // Next pages first, then earlier pages, without restarting in-flight loads.
-      pending.sort((a, b) => {
-        const rank = (page: number) => page >= index ? page - index : urls.length + index - page
-        return rank(a) - rank(b)
-      })
-      for (let page = index; page <= index + 2; page++) {
-        const image = images.get(page)
-        if (image) image.fetchPriority = 'high'
-      }
-      pump()
+      if (disposed) return
+      currentIndex = Math.max(0, Math.min(index, Math.max(0, urls.length - 1)))
+      fillWindow(currentIndex)
+      const current = images.get(currentIndex)
+      const next = images.get(currentIndex + 1)
+      if (current) current.fetchPriority = 'high'
+      if (next) next.fetchPriority = 'high'
     },
     dispose() {
       disposed = true
-      pending = []
       images.forEach(image => {
         image.onload = null
         image.onerror = null
