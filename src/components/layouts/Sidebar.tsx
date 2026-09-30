@@ -1,4 +1,3 @@
-import mgxLogo from '../../assets/998ca46e-3d45-4cb0-ac63-522184fdab70.png'
 import { NavLink } from 'react-router-dom'
 import { useLocalLibrary } from '../../hooks/useLocalLibrary'
 
@@ -10,7 +9,6 @@ const Sidebar = ({ open = false, onClose }: SidebarProps) => {
     <>
       <aside className={'side-nav' + (open ? ' open' : '')} id="sideNav">
         <a className="side-logo" href="/">
-          <img alt="MGX" className="side-logo-image" src={mgxLogo} />
           <span>MGX</span>
         </a>
 
