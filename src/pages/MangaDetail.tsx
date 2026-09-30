@@ -104,7 +104,7 @@ const MangaDetail = () => {
 			<section className="detail-layout">
 				<aside className="manga-info-panel">
 					{manga && <SaveButton manga={toSavedManga(manga)} />}
-					{lastRead && <Link className="continue-reading" to={`/read/${lastRead.chapterId}`}>Đọc tiếp · Chương {lastRead.chapter || '?'}</Link>}
+					{lastRead && <Link className="continue-reading" to={`/read/${lastRead.chapterId}`}>Continue reading · Chapter {lastRead.chapter || '?'}</Link>}
 					<div className="manga-info-group"><strong>Author / Artist</strong><span>{getAuthors(manga) || 'Unknown author'}</span></div>
 					<div className="manga-info-group"><strong>Status</strong><span>{manga?.attributes.status || 'Unknown'}</span><span>{manga?.attributes.year ? `Published ${manga.attributes.year}` : 'Publication year unavailable'}</span></div>
 					<div className="manga-info-group"><strong>Genres</strong><div className="manga-tags">{manga?.attributes.tags?.slice(0, 10).map((tag) => <span key={tag.id}>{tag.attributes?.name?.en || 'Tag'}</span>)}</div></div>

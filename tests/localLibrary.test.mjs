@@ -52,7 +52,7 @@ test('quota failure leaves existing library unchanged', () => {
   toggleSaved(manga)
   const before = data.get(libraryKey)
   localStorage.setItem = () => { throw new Error('QuotaExceededError') }
-  assert.throws(() => toggleSaved(manga), /Không thể lưu/)
+  assert.throws(() => toggleSaved(manga), /Could not save/)
   assert.equal(data.get(libraryKey), before)
 })
 

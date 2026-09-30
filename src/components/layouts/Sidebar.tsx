@@ -26,7 +26,7 @@ const Sidebar = ({ open = false, onClose }: SidebarProps) => {
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M6 3.5h12v17l-6-3.5-6 3.5z" />
             </svg>
-            Truyện đã lưu <span className="saved-count">{library.saved.length}</span>
+            Saved manga <span className="saved-count">{library.saved.length}</span>
           </NavLink>
           <a className="nav-link" href="#">
             <svg viewBox="0 0 24 24" aria-hidden="true">

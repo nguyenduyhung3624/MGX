@@ -246,7 +246,7 @@ const Home = () => {
                   <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20 16.5 16.5" /></svg>
                 </button>
               </div>
-              <Link aria-label="Hồ sơ" className="hero-avatar" title="Hồ sơ" to="/library">
+              <Link aria-label="Saved manga" className="hero-avatar" title="Saved manga" to="/library">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4.5 20.5c1-4 4-6 7.5-6s6.5 2 7.5 6" /></svg>
               </Link>
             </div>

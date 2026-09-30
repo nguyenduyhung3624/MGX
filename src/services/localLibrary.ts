@@ -28,7 +28,7 @@ const object = (value: unknown): value is Record<string, unknown> => typeof valu
 const uuid = (value: unknown): value is string => typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
 const text = (value: unknown, max: number): value is string => typeof value === 'string' && value.length <= max
 const date = (value: unknown): value is number => typeof value === 'number' && Number.isSafeInteger(value) && value > 0 && value <= 8640000000000000
-const invalid = () => new Error('File sao lưu không hợp lệ hoặc không đúng phiên bản MGX.')
+const invalid = () => new Error('Invalid backup file or unsupported MGX backup version.')
 
 // Validate and rebuild imported records. Never trust imported URLs or object keys.
 export function parseLibrary(raw: string): LocalLibrary {
@@ -55,7 +55,7 @@ export function readLibrary(): LocalLibrary {
 function writeLibrary(library: LocalLibrary) {
   const raw = JSON.stringify(library)
   parseLibrary(raw)
-  try { localStorage.setItem(libraryKey, raw) } catch { throw new Error('Không thể lưu trên trình duyệt. Bộ nhớ có thể đã đầy hoặc đang bị chặn.') }
+  try { localStorage.setItem(libraryKey, raw) } catch { throw new Error('Could not save in this browser. Storage may be full or blocked.') }
   window.dispatchEvent(new Event(libraryEvent))
 }
 
@@ -73,7 +73,7 @@ export function toggleSaved(manga: SavedManga) {
   const library = readLibrary()
   if (library.saved.some(item => item.id === manga.id)) library.saved = library.saved.filter(item => item.id !== manga.id)
   else {
-    if (library.saved.length >= maxEntries) throw new Error('Danh sách đã đạt 2.000 truyện. Hãy xuất sao lưu rồi bỏ bớt truyện.')
+    if (library.saved.length >= maxEntries) throw new Error('Your library has reached 2,000 titles. Export a backup, then remove some titles.')
     library.saved.unshift({ ...manga, savedAt: Date.now() })
   }
   writeLibrary(library)
@@ -92,7 +92,7 @@ export function importLibrary(raw: string): number {
   const current = readLibrary()
   const saved = new Map(imported.saved.map(item => [item.id, item]))
   current.saved.forEach(item => saved.set(item.id, item))
-  if (saved.size > maxEntries) throw new Error('Danh sách sau khi nhập vượt quá 2.000 truyện.')
+  if (saved.size > maxEntries) throw new Error('The merged library would exceed 2,000 titles.')
   const progress = new Map(current.progress.map(item => [item.mangaId, item]))
   imported.progress.forEach(item => {
     if (item.readAt > (progress.get(item.mangaId)?.readAt ?? 0)) progress.set(item.mangaId, item)
