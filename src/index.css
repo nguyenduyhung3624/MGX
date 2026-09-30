@@ -2869,7 +2869,7 @@ button, input, select, .search-box, .update-row, .chapter-item, .manga-info-pane
   align-items: center;
   align-self: flex-start;
   gap: 8px;
-  margin-top: 5px;
+  margin-top: 6px;
 }
 .theme-switch button {
   display: grid;
