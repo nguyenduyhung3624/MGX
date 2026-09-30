@@ -2852,3 +2852,40 @@ button, input, select, .search-box, .update-row, .chapter-item, .manga-info-pane
     padding-right: 0;
   }
 }
+
+/* Sidebar brand and outline theme controls */
+.side-brand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.side-brand .side-logo {
+  min-width: 0;
+}
+.theme-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.theme-switch button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  color: var(--text-muted);
+}
+.theme-switch button:hover,
+.theme-switch button.active {
+  color: var(--text-strong);
+}
+.theme-switch svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
