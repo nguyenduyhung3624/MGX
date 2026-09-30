@@ -259,7 +259,6 @@ const Home = () => {
       <section id="updates" className="home-latest">
         <div className="rail-heading">
           <h2>Latest Updates</h2>
-          <Link aria-label="Browse manga" to="/search">→</Link>
         </div>
         {latestQuery.isLoading ? <div className="state-message">Loading updates...</div> : latestQuery.isError ? <div className="state-message">Unable to load updates.</div> : (
           <div className="latest-list">
