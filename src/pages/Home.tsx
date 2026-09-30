@@ -2,13 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getLatestManga, getMangaPage, getNewManga, getPopularManga } from '../services/manga'
-import { getTags } from '../services/tags'
-import SaveButton from '../components/manga/SaveButton'
-import { toSavedManga } from '../services/localLibrary'
 import type { Manga } from '../types/manga'
-
-const pageSize = 20
-const statuses = ['ongoing', 'completed', 'hiatus', 'cancelled']
 
 const getMangaTitle = (manga: Manga) => {
   const titleMap = manga.attributes.title || {}
@@ -58,8 +52,6 @@ const getHeroBadges = (manga: Manga) => {
   return [...badges, ...tags].slice(0, 8)
 }
 
-const getTagName = (tag: Tag) => tag.attributes.name.en || Object.values(tag.attributes.name)[0] || 'Tag'
-
 const getAuthors = (manga: Manga) => manga.relationships
   .filter((item) => item.type === 'author' || item.type === 'artist')
   .map((item) => item.attributes?.name)
@@ -94,6 +86,9 @@ const MangaRail = ({ title, items, loading }: MangaRailProps) => (
 
 const Home = () => {
   const navigate = useNavigate()
+  const [popularIndex, setPopularIndex] = useState(0)
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
+  const heroSearchRef = useRef<HTMLInputElement>(null)
   const latestQuery = useQuery({
     queryKey: ['home-latest-updates'],
     queryFn: () => getLatestManga(6),
@@ -134,9 +129,6 @@ const Home = () => {
     return () => window.clearInterval(timer)
   }, [popularItems.length])
 
-  useEffect(() => {
-    setPageInput(String(page))
-  }, [page])
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
