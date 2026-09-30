@@ -2671,34 +2671,14 @@ button, input, select, .search-box, .update-row, .chapter-item, .manga-info-pane
 /* Profile avatar stays round even though other surfaces are square. */
 .hero-avatar { border-radius: 50% !important; overflow: hidden; }
 
-/* Paged mode gives the entire reading area to the image. */
-.reader-mode-paged { min-height: 100dvh; }
-.reader-mode-paged .reader-paged { min-height: 100dvh; padding: 0; display: block; }
-.reader-mode-paged .reader-image-stage { width: 100%; min-height: 100dvh; }
-.reader-mode-paged .reader-single-page { width: 100%; height: 100dvh; max-height: none; object-fit: contain; }
+/* Keep every corner visible, centered in the available viewport. */
+.reader-mode-paged { position: fixed; inset: 0; height: 100dvh; overflow: hidden; min-height: 0; background: #090909; }
+.reader-mode-paged .reader-paged { display: block; width: 100%; height: 100dvh; min-height: 0; padding: 0; overflow: hidden; }
+.reader-mode-paged .reader-image-stage { position: relative; width: 100%; height: 100%; min-width: 0; min-height: 0; }
+.reader-mode-paged .reader-single-page { display: block; width: 100%; height: 100%; max-width: 100%; max-height: 100%; min-height: 0; margin: 0; object-fit: contain; object-position: center; }
 .reader-mode-paged .reader-page-zone,
 .reader-mode-paged .reader-page-zone:hover:not(:disabled),
-.reader-mode-paged .reader-page-zone:focus-visible { width: 50%; background: transparent; opacity: 1; color: transparent; padding: 0; border: 0; box-shadow: none; cursor: pointer; }
+.reader-mode-paged .reader-page-zone:focus-visible { width: 50%; background: transparent; opacity: 1; color: transparent; padding: 0; border: 0; box-shadow: none; cursor: pointer; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; user-select: none; touch-action: pinch-zoom; }
 .reader-mode-paged .reader-page-zone:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-.reader-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
-@media (max-width: 620px) {
-  .reader-mode-paged .reader-single-page { height: auto; min-height: 100dvh; object-fit: contain; }
-}
-.reader-mode-paged .reader-page-zone { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; user-select: none; }
-@media (max-width: 620px) { .reader-mode-paged .reader-single-page { min-height: 0; } }
-@media (max-width: 620px) {
-  /* The image only takes its natural height; don't force the wrapper to fill
-     the screen or a dark gap shows below shorter pages when paged mode opens. */
-  .reader-mode-paged .reader-single-page { min-height: 0; }
-  .reader-mode-paged .reader-paged { min-height: 0; }
-  .reader-mode-paged .reader-image-stage { min-height: 0; }
-}
-
-/* Fill mobile reader height without stretching or clipping the page. */
-@media (max-width: 620px) {
-  .reader-mode-paged .reader-paged { width: 100%; overflow-x: auto; }
-  .reader-mode-paged .reader-image-stage { width: max-content; min-width: 100%; min-height: 0; }
-  .reader-mode-paged .reader-single-page { display: block; width: auto; max-width: none; height: 100dvh; min-height: 0; margin: 0 auto; object-fit: contain; }
-  .reader-mode-paged .reader-page-zone { touch-action: pan-x pinch-zoom; }
-}
+.reader-sr-only { position: absolute; top: 0; left: 0; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 
