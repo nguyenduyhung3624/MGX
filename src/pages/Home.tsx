@@ -130,9 +130,6 @@ const Home = () => {
     return () => window.clearInterval(timer)
   }, [popularItems.length])
 
-  useEffect(() => {
-    setPageInput(String(page))
-  }, [page])
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
