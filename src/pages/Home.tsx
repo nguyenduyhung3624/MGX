@@ -66,27 +66,54 @@ type MangaRailProps = {
 
 const MangaRail = ({ title, items, loading }: MangaRailProps) => {
   const railRef = useRef<HTMLDivElement>(null)
-  const scrollNext = () => {
+  const [atEnd, setAtEnd] = useState(false)
+
+  const syncPosition = () => {
     const rail = railRef.current
     if (!rail) return
-    rail.scrollBy({ left: Math.max(rail.clientWidth * 0.85, 280), behavior: 'smooth' })
+    setAtEnd(rail.scrollLeft + rail.clientWidth >= rail.scrollWidth - 8)
   }
+
+  const moveRail = () => {
+    const rail = railRef.current
+    if (!rail) return
+    rail.scrollTo({
+      left: atEnd ? 0 : Math.min(rail.scrollLeft + Math.max(rail.clientWidth * 0.85, 280), rail.scrollWidth),
+      behavior: 'smooth',
+    })
+  }
+
+  useEffect(() => {
+    const rail = railRef.current
+    if (!rail) return
+    syncPosition()
+    rail.addEventListener('scroll', syncPosition, { passive: true })
+    window.addEventListener('resize', syncPosition)
+    return () => {
+      rail.removeEventListener('scroll', syncPosition)
+      window.removeEventListener('resize', syncPosition)
+    }
+  }, [items.length])
 
   return (
     <section className="manga-rail">
       <div className="rail-heading">
         <h2>{title}</h2>
-        <button aria-label={`Show more ${title}`} onClick={scrollNext} type="button">→</button>
+        <button aria-label={atEnd ? `Back to start of ${title}` : `Show more ${title}`} onClick={moveRail} type="button">
+          {atEnd ? '←' : '→'}
+        </button>
       </div>
       {loading ? <div className="state-message">Loading...</div> : (
-        <div className="rail-grid" ref={railRef}>
-          {items.map((manga) => <Link className="rail-card" key={manga.id} to={`/manga/${manga.id}`}>
-            <div className="rail-cover">
-              <img alt={getMangaTitle(manga)} loading="lazy" decoding="async" onError={handleImageError} src={getCoverUrl(manga, 512)} />
-              {getFlagUrl(manga) && <img alt="" className="rail-flag" onError={handleImageError} src={getFlagUrl(manga)} />}
-            </div>
-            <span>{getMangaTitle(manga)}</span>
-          </Link>)}
+        <div className="rail-viewport">
+          <div className="rail-grid" ref={railRef}>
+            {items.map((manga) => <Link className="rail-card" key={manga.id} to={`/manga/${manga.id}`}>
+              <div className="rail-cover">
+                <img alt={getMangaTitle(manga)} loading="lazy" decoding="async" onError={handleImageError} src={getCoverUrl(manga, 512)} />
+                {getFlagUrl(manga) && <img alt="" className="rail-flag" onError={handleImageError} src={getFlagUrl(manga)} />}
+              </div>
+              <span>{getMangaTitle(manga)}</span>
+            </Link>)}
+          </div>
         </div>
       )}
     </section>
