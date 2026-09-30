@@ -201,7 +201,7 @@ const ReaderPage = () => {
 
 			{readerMode === 'scroll' ? (
 				<div className="reader-pages">
-					{pageFiles.map((file, index) => <img key={file} src={imageUrl(file)} alt={`Page ${index + 1}`} onLoad={markChapterRead} />)}
+					{pageFiles.map((file, index) => <img key={file} src={imageUrl(file)} alt={`Page ${index + 1}`} loading="lazy" decoding="async" onLoad={markChapterRead} />)}
 				</div>
 			) : (
 				<section className="reader-paged" aria-label={`Page ${activePage + 1} of ${pageFiles.length}`}>
