@@ -64,25 +64,34 @@ type MangaRailProps = {
   loading?: boolean
 }
 
-const MangaRail = ({ title, items, loading }: MangaRailProps) => (
-  <section className="manga-rail">
-    <div className="rail-heading">
-      <h2>{title}</h2>
-      <span aria-hidden="true">→</span>
-    </div>
-    {loading ? <div className="state-message">Loading...</div> : (
-      <div className="rail-grid">
-        {items.map((manga) => <Link className="rail-card" key={manga.id} to={`/manga/${manga.id}`}>
-          <div className="rail-cover">
-            <img alt={getMangaTitle(manga)} loading="lazy" decoding="async" onError={handleImageError} src={getCoverUrl(manga, 512)} />
-            {getFlagUrl(manga) && <img alt="" className="rail-flag" onError={handleImageError} src={getFlagUrl(manga)} />}
-          </div>
-          <span>{getMangaTitle(manga)}</span>
-        </Link>)}
+const MangaRail = ({ title, items, loading }: MangaRailProps) => {
+  const railRef = useRef<HTMLDivElement>(null)
+  const scrollNext = () => {
+    const rail = railRef.current
+    if (!rail) return
+    rail.scrollBy({ left: Math.max(rail.clientWidth * 0.85, 280), behavior: 'smooth' })
+  }
+
+  return (
+    <section className="manga-rail">
+      <div className="rail-heading">
+        <h2>{title}</h2>
+        <button aria-label={`Show more ${title}`} onClick={scrollNext} type="button">→</button>
       </div>
-    )}
-  </section>
-)
+      {loading ? <div className="state-message">Loading...</div> : (
+        <div className="rail-grid" ref={railRef}>
+          {items.map((manga) => <Link className="rail-card" key={manga.id} to={`/manga/${manga.id}`}>
+            <div className="rail-cover">
+              <img alt={getMangaTitle(manga)} loading="lazy" decoding="async" onError={handleImageError} src={getCoverUrl(manga, 512)} />
+              {getFlagUrl(manga) && <img alt="" className="rail-flag" onError={handleImageError} src={getFlagUrl(manga)} />}
+            </div>
+            <span>{getMangaTitle(manga)}</span>
+          </Link>)}
+        </div>
+      )}
+    </section>
+  )
+}
 
 const Home = () => {
   const navigate = useNavigate()
@@ -108,7 +117,7 @@ const Home = () => {
   })
   const selfPublishedQuery = useQuery({
     queryKey: ['home-self-published'],
-    queryFn: () => getMangaPage({ 'order[createdAt]': 'desc' }, 15),
+    queryFn: () => getMangaPage({ 'order[followedCount]': 'desc', 'status[]': ['ongoing'] }, 15, 60),
     staleTime: 5 * 60 * 1000,
   })
   const seasonalQuery = useQuery({
