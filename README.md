@@ -66,4 +66,4 @@ The project is configured for Vercel, including serverless routes used to access
 
 Manga metadata, chapter information, and images are provided by [MangaDex](https://mangadex.org/) and their respective contributors and rights holders. MGX does not claim ownership of third-party content. Please respect the original creators and MangaDex's terms of use.
 ## ATTENTION
-If too lazy to pull or clone. Just click to this link : [https://mgx-cm.vercel.app/]
+If you are too lazy to pull or clone. Just click to this link : [https://mgx-cm.vercel.app/]
