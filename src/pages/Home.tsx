@@ -160,6 +160,17 @@ const Home = () => {
   const popularItems = popularQuery.data?.data ?? []
   const featured = popularItems[popularIndex] ?? popularItems[0]
 
+  // Keep discovery sections distinct even when MangaDex queries overlap.
+  const recommendedItems = recommendedQuery.data?.data ?? []
+  const recommendedIds = new Set(recommendedItems.map((manga) => manga.id))
+  const selfPublishedItems = (selfPublishedQuery.data?.data ?? []).filter((manga) => !recommendedIds.has(manga.id))
+  const selfPublishedIds = new Set(selfPublishedItems.map((manga) => manga.id))
+  const seasonalItems = (seasonalQuery.data?.data ?? []).filter((manga) => !recommendedIds.has(manga.id) && !selfPublishedIds.has(manga.id))
+  const seasonalIds = new Set(seasonalItems.map((manga) => manga.id))
+  const recentlyAddedItems = (recentlyAddedQuery.data?.data ?? []).filter((manga) =>
+    !recommendedIds.has(manga.id) && !selfPublishedIds.has(manga.id) && !seasonalIds.has(manga.id)
+  )
+
   useEffect(() => {
     if (popularItems.length <= 1) return
     const timer = window.setInterval(() => setPopularIndex((current) => (current + 1) % popularItems.length), 5000)
@@ -266,10 +277,10 @@ const Home = () => {
       </section>
 
 
-      <MangaRail loading={recommendedQuery.isLoading} items={recommendedQuery.data?.data ?? []} title="Recommended" />
-      <MangaRail loading={selfPublishedQuery.isLoading} items={selfPublishedQuery.data?.data ?? []} title="Self-Published" />
-      <MangaRail loading={seasonalQuery.isLoading} items={seasonalQuery.data?.data ?? []} title={`Seasonal: Summer ${new Date().getFullYear()}`} />
-      <MangaRail loading={recentlyAddedQuery.isLoading} items={recentlyAddedQuery.data?.data ?? []} title="Recently Added" />
+      <MangaRail loading={recommendedQuery.isLoading} items={recommendedItems} title="Recommended" />
+      <MangaRail loading={selfPublishedQuery.isLoading} items={selfPublishedItems} title="Self-Published" />
+      <MangaRail loading={seasonalQuery.isLoading} items={seasonalItems} title={`Seasonal: Summer ${new Date().getFullYear()}`} />
+      <MangaRail loading={recentlyAddedQuery.isLoading} items={recentlyAddedItems} title="Recently Added" />
     </>
   )
 }
