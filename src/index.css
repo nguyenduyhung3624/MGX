@@ -2862,8 +2862,11 @@ button, input, select, .search-box, .update-row, .chapter-item, .manga-info-pane
 }
 .side-brand .side-logo {
   min-width: 0;
+  padding-bottom: 6px;
 }
 .theme-switch {
+  align-self: flex-start;
+}
   display: flex;
   align-items: center;
   gap: 8px;
