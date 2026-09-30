@@ -2746,7 +2746,8 @@ button, input, select, .search-box, .update-row, .chapter-item, .manga-info-pane
   padding-bottom: 10px;
   scroll-snap-type: x proximity;
   overscroll-behavior-inline: contain;
-  scrollbar-width: thin;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 .manga-rail .rail-card {
   scroll-snap-align: start;
@@ -2783,4 +2784,8 @@ button, input, select, .search-box, .update-row, .chapter-item, .manga-info-pane
   .manga-rail .rail-card > span {
     font-size: 13px;
   }
+}
+
+.manga-rail .rail-grid::-webkit-scrollbar {
+  display: none;
 }
