@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useLocalLibrary } from '../../hooks/useLocalLibrary'
 
@@ -5,12 +6,41 @@ type SidebarProps = { open?: boolean; onClose?: () => void }
 
 const Sidebar = ({ open = false, onClose }: SidebarProps) => {
   const library = useLocalLibrary()
+  const [theme, setTheme] = useState<'dark' | 'light'>(() =>
+    document.documentElement.dataset.theme === 'light' ? 'light' : 'dark'
+  )
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme
+    localStorage.setItem('mgx-theme', theme)
+  }, [theme])
+
+  useEffect(() => {
+    const saved = localStorage.getItem('mgx-theme')
+    if (saved === 'light' || saved === 'dark') setTheme(saved)
+  }, [])
+
   return (
     <>
       <aside className={'side-nav' + (open ? ' open' : '')} id="sideNav">
-        <a className="side-logo" href="/">
-          <span>MGX</span>
-        </a>
+        <div className="side-brand">
+          <a className="side-logo" href="/">
+            <span>MGX</span>
+          </a>
+          <div className="theme-switch" aria-label="Color theme">
+            <button aria-label="Use light theme" className={theme === 'light' ? 'active' : ''} onClick={() => setTheme('light')} type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="3.5" />
+                <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M18.7 5.3l-1.4 1.4M6.7 17.3l-1.4 1.4" />
+              </svg>
+            </button>
+            <button aria-label="Use dark theme" className={theme === 'dark' ? 'active' : ''} onClick={() => setTheme('dark')} type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M20 15.2A8.2 8.2 0 0 1 8.8 4a8.4 8.4 0 1 0 11.2 11.2Z" />
+              </svg>
+            </button>
+          </div>
+        </div>
 
         <nav className="nav-group">
           <NavLink className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`} to="/" end>
