@@ -2810,3 +2810,26 @@ button, input, select, .search-box, .update-row, .chapter-item, .manga-info-pane
   min-width: 0;
   overflow: hidden;
 }
+
+/* Clip discovery rails before the next card; horizontal movement stays inside this viewport. */
+.manga-rail .rail-viewport {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+.manga-rail .rail-grid {
+  width: 100%;
+  padding-right: 0;
+  scroll-padding-inline: 0;
+}
+@media (max-width: 640px) {
+  .manga-rail {
+    padding-right: 20px;
+  }
+  .manga-rail .rail-heading {
+    margin-right: 0;
+  }
+  .manga-rail .rail-grid {
+    padding-right: 0;
+  }
+}
