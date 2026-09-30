@@ -12,36 +12,32 @@ function fixture() {
   return { images, create }
 }
 
-test('loads every page with four in flight and continues after an image error', () => {
+test('preloads only the current page and two pages ahead', () => {
   const { images, create } = fixture()
   const session = preloadPages(Array.from({ length: 12 }, (_, i) => `page-${i}`), create)
-  assert.equal(images.length, 4)
-  images[0].onerror()
-  assert.equal(images.length, 5)
-  for (let i = 1; i < 12; i++) {
-    images[i].complete = true
-    images[i].onload()
-    assert(images.filter(image => image.onload).length <= 4)
-  }
-  assert.equal(new Set(images.map(image => image.src)).size, 12)
+  assert.equal(images.length, 3)
+  assert.deepEqual(images.map(image => image.src), ['page-0', 'page-1', 'page-2'])
+  assert.equal(images[0].fetchPriority, 'high')
+  assert.equal(images[1].fetchPriority, 'high')
+  assert.equal(images[2].fetchPriority, 'low')
   session.dispose()
 })
 
-test('prioritizes the new reading position without restarting existing requests', () => {
+test('moves the preload window with the reading position', () => {
   const { images, create } = fixture()
   const session = preloadPages(Array.from({ length: 12 }, (_, i) => `page-${i}`), create)
   session.prioritize(8)
-  images[0].onload()
-  assert.equal(images[4].src, 'page-8')
+  assert.deepEqual(images.slice(3).map(image => image.src), ['page-8', 'page-9', 'page-10'])
+  assert(images.length <= 6)
   session.dispose()
 })
 
-test('disposal cancels pending images and prevents a new batch', () => {
+test('disposal cancels in-flight images and prevents new loads', () => {
   const { images, create } = fixture()
   const session = preloadPages(Array.from({ length: 12 }, (_, i) => `page-${i}`), create)
   session.dispose()
-  assert.equal(images.length, 4)
-  assert(images.every(image => image.onload === null && image.src === ''))
+  assert.equal(images.length, 3)
+  assert(images.every(image => image.src === ''))
   session.prioritize(9)
-  assert.equal(images.length, 4)
+  assert.equal(images.length, 3)
 })
