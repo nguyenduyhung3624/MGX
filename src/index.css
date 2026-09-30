@@ -2693,3 +2693,12 @@ button, input, select, .search-box, .update-row, .chapter-item, .manga-info-pane
   .reader-mode-paged .reader-paged { min-height: 0; }
   .reader-mode-paged .reader-image-stage { min-height: 0; }
 }
+
+/* Fill mobile reader height without stretching or clipping the page. */
+@media (max-width: 620px) {
+  .reader-mode-paged .reader-paged { width: 100%; overflow-x: auto; }
+  .reader-mode-paged .reader-image-stage { width: max-content; min-width: 100%; min-height: 0; }
+  .reader-mode-paged .reader-single-page { display: block; width: auto; max-width: none; height: 100dvh; min-height: 0; margin: 0 auto; object-fit: contain; }
+  .reader-mode-paged .reader-page-zone { touch-action: pan-x pinch-zoom; }
+}
+
