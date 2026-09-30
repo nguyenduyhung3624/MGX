@@ -89,6 +89,7 @@ const Home = () => {
   const [popularIndex, setPopularIndex] = useState(0)
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const heroSearchRef = useRef<HTMLInputElement>(null)
+
   const latestQuery = useQuery({
     queryKey: ['home-latest-updates'],
     queryFn: () => getLatestManga(6),
@@ -129,6 +130,9 @@ const Home = () => {
     return () => window.clearInterval(timer)
   }, [popularItems.length])
 
+  useEffect(() => {
+    setPageInput(String(page))
+  }, [page])
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -142,4 +146,99 @@ const Home = () => {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [])
 
+  return (
+    <>
+      <section className="popular-section home-popular">
+        {popularQuery.isLoading ? <div className="state-message">Loading popular manga...</div> : featured ? (
+          <div className="popular-hero">
+            <div aria-hidden="true" className="popular-hero-bg" key={`bg-${featured.id}`} style={{ backgroundImage: `url(${getCoverUrl(featured, 512)})` }} />
 
+            <button aria-label="Open menu" className="home-menu-toggle" onClick={() => window.dispatchEvent(new Event("open-mobile-menu"))} type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+            </button>
+
+            <h1 className="popular-hero-heading">Popular New Titles</h1>
+
+            <div className="hero-tools">
+              <div className={'hero-search-wrap' + (mobileSearchOpen ? ' open' : '')}>
+                <form className="hero-search search-box" role="search" onSubmit={(event) => { event.preventDefault(); const title = heroSearchRef.current?.value.trim(); if (title) navigate(`/search?q=${encodeURIComponent(title)}`) }}>
+                  <input aria-label="Search manga" placeholder="Search" ref={heroSearchRef} maxLength={200} type="search" />
+                  <kbd>Ctrl</kbd>
+                  <kbd>K</kbd>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20 16.5 16.5" /></svg>
+                </form>
+                <button
+                  aria-label={mobileSearchOpen ? 'Close search' : 'Open search'}
+                  className="hero-search-toggle"
+                  onClick={() => {
+                    setMobileSearchOpen((open) => {
+                      if (!open) window.setTimeout(() => heroSearchRef.current?.focus(), 0)
+                      return !open
+                    })
+                  }}
+                  type="button"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20 16.5 16.5" /></svg>
+                </button>
+              </div>
+              <Link aria-label="Saved manga" className="hero-avatar" title="Saved manga" to="/library">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4.5 20.5c1-4 4-6 7.5-6s6.5 2 7.5 6" /></svg>
+              </Link>
+            </div>
+
+            <Link className="popular-hero-link" key={featured.id} to={`/manga/${featured.id}`}>
+              <div className="popular-hero-cover">
+                <img alt={getMangaTitle(featured)} onError={handleImageError} src={getCoverUrl(featured, 512)} />
+                {getFlagUrl(featured) && <img alt="" className="popular-hero-flag" onError={handleImageError} src={getFlagUrl(featured)} />}
+              </div>
+              <div className="popular-hero-content">
+                <h2>{getMangaTitle(featured)}</h2>
+                <div className="popular-tags">{getHeroBadges(featured).map((badge) => <span className={badge.tone} key={badge.key}>{badge.label}</span>)}</div>
+                <p>{featured.attributes.description?.en || 'Discover a new English manga series.'}</p>
+                <strong>{getAuthors(featured) || 'MangaDex author'}</strong>
+              </div>
+            </Link>
+
+            <div className="popular-controls">
+              <span className="popular-index">NO. {popularIndex + 1}</span>
+              <button aria-label="Previous popular manga" onClick={() => setPopularIndex((current) => current === 0 ? Math.max(0, popularItems.length - 1) : current - 1)}>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7" /></svg>
+              </button>
+              <button aria-label="Next popular manga" onClick={() => setPopularIndex((current) => popularItems.length ? (current + 1) % popularItems.length : 0)}>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg>
+              </button>
+            </div>
+          </div>
+        ) : <div className="state-message">No popular manga available.</div>}
+      </section>
+
+      <section id="updates" className="home-latest">
+        <div className="rail-heading">
+          <h2>Latest Updates</h2>
+          <Link aria-label="Browse manga" to="/search">→</Link>
+        </div>
+        {latestQuery.isLoading ? <div className="state-message">Loading updates...</div> : latestQuery.isError ? <div className="state-message">Unable to load updates.</div> : (
+          <div className="latest-list">
+            {(latestQuery.data?.data ?? []).map((manga) => (
+              <Link className="latest-row" key={manga.id} to={`/manga/${manga.id}`}>
+                <img alt={getMangaTitle(manga)} loading="lazy" decoding="async" onError={handleImageError} src={getCoverUrl(manga)} />
+                <div>
+                  <strong>{getMangaTitle(manga)}</strong>
+                  <span>EN · {manga.attributes.lastChapter ? `Ch. ${manga.attributes.lastChapter}` : 'Recently updated'}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
+
+
+      <MangaRail loading={recommendedQuery.isLoading} items={recommendedQuery.data?.data ?? []} title="Recommended" />
+      <MangaRail loading={selfPublishedQuery.isLoading} items={selfPublishedQuery.data?.data ?? []} title="Self-Published" />
+      <MangaRail loading={seasonalQuery.isLoading} items={seasonalQuery.data?.data ?? []} title={`Seasonal: Summer ${new Date().getFullYear()}`} />
+      <MangaRail loading={recentlyAddedQuery.isLoading} items={recentlyAddedQuery.data?.data ?? []} title="Recently Added" />
+    </>
+  )
+}
+
+export default Home
