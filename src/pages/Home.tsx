@@ -75,6 +75,38 @@ const MangaRail = ({ title, items, href, loading }: MangaRailProps) => {
     moved: false,
   })
   const [dragging, setDragging] = useState(false)
+  const [atStart, setAtStart] = useState(true)
+  const [atEnd, setAtEnd] = useState(false)
+
+  const syncRailPosition = () => {
+    const rail = railRef.current
+    if (!rail) return
+    setAtStart(rail.scrollLeft <= 8)
+    setAtEnd(rail.scrollLeft + rail.clientWidth >= rail.scrollWidth - 8)
+  }
+
+  const scrollRail = (direction: -1 | 1) => {
+    const rail = railRef.current
+    if (!rail) return
+    rail.scrollBy({
+      left: direction * Math.max(rail.clientWidth * 0.9, 280),
+      behavior: 'smooth',
+    })
+  }
+
+  useEffect(() => {
+    const rail = railRef.current
+    if (!rail) return
+
+    syncRailPosition()
+    rail.addEventListener('scroll', syncRailPosition, { passive: true })
+    window.addEventListener('resize', syncRailPosition)
+
+    return () => {
+      rail.removeEventListener('scroll', syncRailPosition)
+      window.removeEventListener('resize', syncRailPosition)
+    }
+  }, [items.length])
 
   const startDrag = (event: React.PointerEvent<HTMLDivElement>) => {
     if (event.pointerType !== 'mouse' || event.button !== 0) return
@@ -120,7 +152,27 @@ const MangaRail = ({ title, items, href, loading }: MangaRailProps) => {
     <section className="manga-rail">
       <div className="rail-heading">
         <h2>{title}</h2>
-        <Link aria-label={`View more ${title}`} className="rail-more" to={href}>→</Link>
+        <div className="rail-actions">
+          <div className="rail-scroll-controls" aria-label={`Scroll ${title}`}>
+            <button
+              aria-label={`Previous ${title}`}
+              disabled={atStart}
+              onClick={() => scrollRail(-1)}
+              type="button"
+            >
+              ‹
+            </button>
+            <button
+              aria-label={`Next ${title}`}
+              disabled={atEnd}
+              onClick={() => scrollRail(1)}
+              type="button"
+            >
+              ›
+            </button>
+          </div>
+          <Link aria-label={`View more ${title}`} className="rail-more" to={href}>→</Link>
+        </div>
       </div>
       {loading ? <div className="state-message">Loading...</div> : (
         <div className="rail-viewport">
@@ -211,7 +263,7 @@ const Home = () => {
   }, [popularItems.length])
 
   const startHeroDrag = (event: React.PointerEvent<HTMLDivElement>) => {
-    if ((event.pointerType === 'mouse' && event.button !== 0) || popularItems.length <= 1) return
+    if (event.pointerType !== 'touch' || !window.matchMedia('(max-width: 980px)').matches || popularItems.length <= 1) return
 
     const target = event.target as HTMLElement
     if (target.closest('.hero-tools, .popular-controls, .home-menu-toggle')) return
