@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { getLatestManga, getMangaPage, getNewManga, getPopularManga } from '../services/manga'
+import { getLatestManga, getPopularManga } from '../services/manga'
+import { getDiscoveryCollection } from '../services/discoveryCollections'
 import type { Manga } from '../types/manga'
 
 const getMangaTitle = (manga: Manga) => {
@@ -165,22 +166,22 @@ const Home = () => {
   })
   const recommendedQuery = useQuery({
     queryKey: ['home-recommended'],
-    queryFn: () => getPopularManga(15),
+    queryFn: () => getDiscoveryCollection('recommended').load(15, 0),
     staleTime: 5 * 60 * 1000,
   })
   const selfPublishedQuery = useQuery({
     queryKey: ['home-self-published'],
-    queryFn: () => getMangaPage({ 'order[followedCount]': 'desc', 'status[]': ['ongoing'] }, 15, 60),
+    queryFn: () => getDiscoveryCollection('self-published').load(15, 0),
     staleTime: 5 * 60 * 1000,
   })
   const seasonalQuery = useQuery({
     queryKey: ['home-seasonal'],
-    queryFn: () => getMangaPage({ year: new Date().getFullYear(), 'order[latestUploadedChapter]': 'desc' }, 15),
+    queryFn: () => getDiscoveryCollection('seasonal').load(15, 0),
     staleTime: 5 * 60 * 1000,
   })
   const recentlyAddedQuery = useQuery({
     queryKey: ['home-recently-added'],
-    queryFn: () => getNewManga(15),
+    queryFn: () => getDiscoveryCollection('recently-added').load(15, 0),
     staleTime: 5 * 60 * 1000,
   })
   const popularItems = popularQuery.data?.data ?? []
