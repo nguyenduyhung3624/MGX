@@ -16,19 +16,6 @@
   }
 }
 
-.rail-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.rail-scroll-controls {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.rail-scroll-controls button,
 .rail-heading .rail-more {
   display: grid;
   width: 34px;
@@ -39,14 +26,47 @@
   line-height: 1;
 }
 
-.rail-scroll-controls button:hover:not(:disabled),
 .rail-heading .rail-more:hover {
   color: var(--accent);
 }
 
-.rail-scroll-controls button:disabled {
-  cursor: default;
-  opacity: .28;
+.rail-viewport {
+  position: relative;
+}
+
+.rail-edge-control {
+  position: absolute;
+  top: 50%;
+  z-index: 4;
+  display: grid;
+  width: 42px;
+  height: 56px;
+  place-items: center;
+  transform: translateY(-58%);
+  background: rgba(8, 8, 8, 0.76);
+  color: #fff;
+  font-size: 34px;
+  line-height: 1;
+  backdrop-filter: blur(8px);
+  transition: opacity .15s ease, background-color .15s ease;
+}
+
+.rail-edge-control-prev {
+  left: 8px;
+}
+
+.rail-edge-control-next {
+  right: 8px;
+}
+
+.rail-edge-control:hover:not(:disabled) {
+  background: rgba(8, 8, 8, 0.94);
+  color: var(--accent);
+}
+
+.rail-edge-control:disabled {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .manga-rail .rail-card,
@@ -56,7 +76,7 @@
 }
 
 @media (max-width: 640px) {
-  .rail-scroll-controls {
+  .rail-edge-control {
     display: none;
   }
 }
