@@ -61,55 +61,81 @@ const getAuthors = (manga: Manga) => manga.relationships
 type MangaRailProps = {
   title: string
   items: Manga[]
+  href: string
   loading?: boolean
 }
 
-const MangaRail = ({ title, items, loading }: MangaRailProps) => {
+const MangaRail = ({ title, items, href, loading }: MangaRailProps) => {
   const railRef = useRef<HTMLDivElement>(null)
-  const [atEnd, setAtEnd] = useState(false)
+  const dragRef = useRef({
+    pointerId: -1,
+    startX: 0,
+    scrollLeft: 0,
+    moved: false,
+  })
+  const [dragging, setDragging] = useState(false)
 
-  const syncPosition = () => {
+  const startDrag = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType !== 'mouse' || event.button !== 0) return
     const rail = railRef.current
     if (!rail) return
-    setAtEnd(rail.scrollLeft + rail.clientWidth >= rail.scrollWidth - 8)
-  }
 
-  const moveRail = () => {
-    const rail = railRef.current
-    if (!rail) return
-    rail.scrollTo({
-      left: atEnd ? 0 : Math.min(rail.scrollLeft + Math.max(rail.clientWidth * 0.85, 280), rail.scrollWidth),
-      behavior: 'smooth',
-    })
-  }
-
-  useEffect(() => {
-    const rail = railRef.current
-    if (!rail) return
-    syncPosition()
-    rail.addEventListener('scroll', syncPosition, { passive: true })
-    window.addEventListener('resize', syncPosition)
-    return () => {
-      rail.removeEventListener('scroll', syncPosition)
-      window.removeEventListener('resize', syncPosition)
+    dragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      scrollLeft: rail.scrollLeft,
+      moved: false,
     }
-  }, [items.length])
+    event.currentTarget.setPointerCapture(event.pointerId)
+    setDragging(true)
+  }
+
+  const dragRail = (event: React.PointerEvent<HTMLDivElement>) => {
+    const rail = railRef.current
+    if (!rail || dragRef.current.pointerId !== event.pointerId) return
+
+    const delta = event.clientX - dragRef.current.startX
+    if (Math.abs(delta) > 5) dragRef.current.moved = true
+    rail.scrollLeft = dragRef.current.scrollLeft - delta
+  }
+
+  const stopDrag = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (dragRef.current.pointerId !== event.pointerId) return
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+    dragRef.current.pointerId = -1
+    setDragging(false)
+  }
+
+  const cancelDraggedLink = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (!dragRef.current.moved) return
+    event.preventDefault()
+    event.stopPropagation()
+    dragRef.current.moved = false
+  }
 
   return (
     <section className="manga-rail">
       <div className="rail-heading">
         <h2>{title}</h2>
-        <button aria-label={atEnd ? `Back to start of ${title}` : `Show more ${title}`} onClick={moveRail} type="button">
-          {atEnd ? '←' : '→'}
-        </button>
+        <Link aria-label={`View more ${title}`} className="rail-more" to={href}>→</Link>
       </div>
       {loading ? <div className="state-message">Loading...</div> : (
         <div className="rail-viewport">
-          <div className="rail-grid" ref={railRef}>
+          <div
+            className={`rail-grid${dragging ? ' is-dragging' : ''}`}
+            onClickCapture={cancelDraggedLink}
+            onPointerCancel={stopDrag}
+            onPointerDown={startDrag}
+            onPointerMove={dragRail}
+            onPointerUp={stopDrag}
+            ref={railRef}
+          >
             {items.map((manga) => <Link className="rail-card" key={manga.id} to={`/manga/${manga.id}`}>
               <div className="rail-cover">
-                <img alt={getMangaTitle(manga)} loading="lazy" decoding="async" onError={handleImageError} src={getCoverUrl(manga, 512)} />
-                {getFlagUrl(manga) && <img alt="" className="rail-flag" onError={handleImageError} src={getFlagUrl(manga)} />}
+                <img alt={getMangaTitle(manga)} draggable={false} loading="lazy" decoding="async" onError={handleImageError} src={getCoverUrl(manga, 512)} />
+                {getFlagUrl(manga) && <img alt="" className="rail-flag" draggable={false} onError={handleImageError} src={getFlagUrl(manga)} />}
               </div>
               <span>{getMangaTitle(manga)}</span>
             </Link>)}
@@ -176,7 +202,6 @@ const Home = () => {
     const timer = window.setInterval(() => setPopularIndex((current) => (current + 1) % popularItems.length), 5000)
     return () => window.clearInterval(timer)
   }, [popularItems.length])
-
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -275,11 +300,10 @@ const Home = () => {
         )}
       </section>
 
-
-      <MangaRail loading={recommendedQuery.isLoading} items={recommendedItems} title="Recommended" />
-      <MangaRail loading={selfPublishedQuery.isLoading} items={selfPublishedItems} title="Self-Published" />
-      <MangaRail loading={seasonalQuery.isLoading} items={seasonalItems} title={`Seasonal: Summer ${new Date().getFullYear()}`} />
-      <MangaRail loading={recentlyAddedQuery.isLoading} items={recentlyAddedItems} title="Recently Added" />
+      <MangaRail href="/browse/recommended" loading={recommendedQuery.isLoading} items={recommendedItems} title="Recommended" />
+      <MangaRail href="/browse/self-published" loading={selfPublishedQuery.isLoading} items={selfPublishedItems} title="Self-Published" />
+      <MangaRail href="/browse/seasonal" loading={seasonalQuery.isLoading} items={seasonalItems} title={`Seasonal: Summer ${new Date().getFullYear()}`} />
+      <MangaRail href="/browse/recently-added" loading={recentlyAddedQuery.isLoading} items={recentlyAddedItems} title="Recently Added" />
     </>
   )
 }
