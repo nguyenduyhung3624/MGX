@@ -151,7 +151,13 @@ const Home = () => {
   const navigate = useNavigate()
   const [popularIndex, setPopularIndex] = useState(0)
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
+  const [heroDragging, setHeroDragging] = useState(false)
   const heroSearchRef = useRef<HTMLInputElement>(null)
+  const heroDragRef = useRef({
+    pointerId: -1,
+    startX: 0,
+    moved: false,
+  })
 
   const latestQuery = useQuery({
     queryKey: ['home-latest-updates'],
@@ -204,6 +210,60 @@ const Home = () => {
     return () => window.clearInterval(timer)
   }, [popularItems.length])
 
+  const startHeroDrag = (event: React.PointerEvent<HTMLDivElement>) => {
+    if ((event.pointerType === 'mouse' && event.button !== 0) || popularItems.length <= 1) return
+
+    const target = event.target as HTMLElement
+    if (target.closest('.hero-tools, .popular-controls, .home-menu-toggle')) return
+
+    heroDragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      moved: false,
+    }
+    event.currentTarget.setPointerCapture(event.pointerId)
+    setHeroDragging(true)
+  }
+
+  const moveHeroDrag = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (heroDragRef.current.pointerId !== event.pointerId) return
+    if (Math.abs(event.clientX - heroDragRef.current.startX) > 8) {
+      heroDragRef.current.moved = true
+    }
+  }
+
+  const finishHeroDrag = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (heroDragRef.current.pointerId !== event.pointerId) return
+
+    const delta = event.clientX - heroDragRef.current.startX
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+    heroDragRef.current.pointerId = -1
+    setHeroDragging(false)
+
+    if (Math.abs(delta) < 48 || popularItems.length <= 1) return
+
+    setPopularIndex((current) => (
+      delta < 0
+        ? (current + 1) % popularItems.length
+        : current === 0 ? popularItems.length - 1 : current - 1
+    ))
+  }
+
+  const cancelHeroDrag = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (heroDragRef.current.pointerId !== event.pointerId) return
+    heroDragRef.current.pointerId = -1
+    heroDragRef.current.moved = false
+    setHeroDragging(false)
+  }
+
+  const cancelHeroClickAfterDrag = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!heroDragRef.current.moved) return
+    event.preventDefault()
+    heroDragRef.current.moved = false
+  }
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
@@ -220,7 +280,13 @@ const Home = () => {
     <>
       <section className="popular-section home-popular">
         {popularQuery.isLoading ? <div className="state-message">Loading popular manga...</div> : featured ? (
-          <div className="popular-hero">
+          <div
+            className={`popular-hero${heroDragging ? ' is-dragging' : ''}`}
+            onPointerCancel={cancelHeroDrag}
+            onPointerDown={startHeroDrag}
+            onPointerMove={moveHeroDrag}
+            onPointerUp={finishHeroDrag}
+          >
             <div aria-hidden="true" className="popular-hero-bg" key={`bg-${featured.id}`} style={{ backgroundImage: `url(${getCoverUrl(featured, 512)})` }} />
 
             <button aria-label="Open menu" className="home-menu-toggle" onClick={() => window.dispatchEvent(new Event("open-mobile-menu"))} type="button">
@@ -256,10 +322,10 @@ const Home = () => {
               </Link>
             </div>
 
-            <Link className="popular-hero-link" key={featured.id} to={`/manga/${featured.id}`}>
+            <Link className="popular-hero-link" key={featured.id} onClick={cancelHeroClickAfterDrag} to={`/manga/${featured.id}`}>
               <div className="popular-hero-cover">
-                <img alt={getMangaTitle(featured)} onError={handleImageError} src={getCoverUrl(featured, 512)} />
-                {getFlagUrl(featured) && <img alt="" className="popular-hero-flag" onError={handleImageError} src={getFlagUrl(featured)} />}
+                <img alt={getMangaTitle(featured)} draggable={false} onError={handleImageError} src={getCoverUrl(featured, 512)} />
+                {getFlagUrl(featured) && <img alt="" className="popular-hero-flag" draggable={false} onError={handleImageError} src={getFlagUrl(featured)} />}
               </div>
               <div className="popular-hero-content">
                 <h2>{getMangaTitle(featured)}</h2>
