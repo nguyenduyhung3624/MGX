@@ -55,18 +55,6 @@
   user-select: none;
 }
 
-@media (pointer: fine) {
-  .manga-rail .rail-grid {
-    cursor: grab;
-  }
-
-  .manga-rail .rail-grid.is-dragging {
-    cursor: grabbing;
-    scroll-snap-type: none;
-    user-select: none;
-  }
-}
-
 @media (max-width: 640px) {
   .rail-scroll-controls {
     display: none;
