@@ -105,30 +105,19 @@ const MangaRail = ({ title, items, href, loading }: MangaRailProps) => {
     <section className="manga-rail">
       <div className="rail-heading">
         <h2>{title}</h2>
-        <div className="rail-actions">
-          <div className="rail-scroll-controls" aria-label={`Scroll ${title}`}>
-            <button
-              aria-label={`Previous ${title}`}
-              disabled={atStart}
-              onClick={() => scrollRail(-1)}
-              type="button"
-            >
-              ‹
-            </button>
-            <button
-              aria-label={`Next ${title}`}
-              disabled={atEnd}
-              onClick={() => scrollRail(1)}
-              type="button"
-            >
-              ›
-            </button>
-          </div>
-          <Link aria-label={`View more ${title}`} className="rail-more" to={href}>→</Link>
-        </div>
+        <Link aria-label={`View more ${title}`} className="rail-more" to={href}>→</Link>
       </div>
       {loading ? <div className="state-message">Loading...</div> : (
         <div className="rail-viewport">
+          <button
+            aria-label={`Previous ${title}`}
+            className="rail-edge-control rail-edge-control-prev"
+            disabled={atStart}
+            onClick={() => scrollRail(-1)}
+            type="button"
+          >
+            ‹
+          </button>
           <div className="rail-grid" ref={railRef}>
             {items.map((manga) => <Link className="rail-card" key={manga.id} to={`/manga/${manga.id}`}>
               <div className="rail-cover">
@@ -138,6 +127,15 @@ const MangaRail = ({ title, items, href, loading }: MangaRailProps) => {
               <span>{getMangaTitle(manga)}</span>
             </Link>)}
           </div>
+          <button
+            aria-label={`Next ${title}`}
+            className="rail-edge-control rail-edge-control-next"
+            disabled={atEnd}
+            onClick={() => scrollRail(1)}
+            type="button"
+          >
+            ›
+          </button>
         </div>
       )}
     </section>
