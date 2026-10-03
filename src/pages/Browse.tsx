@@ -1,17 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
-import { getMangaPage, getNewManga, getPopularManga } from '../services/manga'
-import type { Manga, MangaResponse } from '../types/manga'
-
-type BrowseCollection = 'recommended' | 'self-published' | 'seasonal' | 'recently-added'
-
-type CollectionConfig = {
-  title: string
-  eyebrow: string
-  description: string
-  load: (limit: number, offset: number) => Promise<MangaResponse>
-}
+import { getDiscoveryCollection, type DiscoveryCollection } from '../services/discoveryCollections'
+import type { Manga } from '../types/manga'
 
 const pageSize = 20
 const maxPages = 3
@@ -34,53 +25,14 @@ const handleImageError = (event: React.SyntheticEvent<HTMLImageElement>) => {
   event.currentTarget.src = fallbackCover
 }
 
-const getConfig = (collection?: string): CollectionConfig | undefined => {
-  const currentYear = new Date().getFullYear()
-
-  const configs: Record<BrowseCollection, CollectionConfig> = {
-    recommended: {
-      title: 'Recommended',
-      eyebrow: 'HAND-PICKED FROM POPULAR TITLES',
-      description: 'A focused selection of popular English-readable manga instead of the entire MangaDex catalogue.',
-      load: (limit, offset) => getPopularManga(limit, offset),
-    },
-    'self-published': {
-      title: 'Self-Published',
-      eyebrow: 'DISCOVERY PICKS',
-      description: 'A compact set of ongoing titles from deeper in the discovery feed.',
-      load: (limit, offset) => getMangaPage(
-        { 'order[followedCount]': 'desc', 'status[]': ['ongoing'] },
-        limit,
-        60 + offset,
-      ),
-    },
-    seasonal: {
-      title: `Seasonal: Summer ${currentYear}`,
-      eyebrow: 'THIS YEAR',
-      description: `A short seasonal shelf of titles first released in ${currentYear}, ordered by recent activity.`,
-      load: (limit, offset) => getMangaPage(
-        { year: currentYear, 'order[latestUploadedChapter]': 'desc' },
-        limit,
-        offset,
-      ),
-    },
-    'recently-added': {
-      title: 'Recently Added',
-      eyebrow: 'FRESH ENTRIES',
-      description: 'A limited look at newly created manga entries rather than a full database listing.',
-      load: (limit, offset) => getNewManga(limit, offset),
-    },
-  }
-
-  return collection && collection in configs
-    ? configs[collection as BrowseCollection]
-    : undefined
-}
-
 const Browse = () => {
   const { collection } = useParams<{ collection: string }>()
   const [searchParams] = useSearchParams()
-  const config = getConfig(collection)
+  const validCollections: DiscoveryCollection[] = ['recommended', 'self-published', 'seasonal', 'recently-added']
+  const selectedCollection = validCollections.includes(collection as DiscoveryCollection)
+    ? collection as DiscoveryCollection
+    : undefined
+  const config = selectedCollection ? getDiscoveryCollection(selectedCollection) : undefined
   const rawPage = Number(searchParams.get('page') || '1')
   const page = Number.isFinite(rawPage) && rawPage > 0
     ? Math.min(maxPages, Math.floor(rawPage))
@@ -88,7 +40,7 @@ const Browse = () => {
   const offset = (page - 1) * pageSize
 
   const query = useQuery({
-    queryKey: ['browse-collection', collection, page],
+    queryKey: ['browse-collection', selectedCollection, page],
     queryFn: async () => {
       if (!config) throw new Error('Unknown collection')
       return config.load(pageSize, offset)
