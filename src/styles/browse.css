@@ -34,34 +34,92 @@
   position: relative;
 }
 
+.rail-viewport::before,
+.rail-viewport::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 3;
+  width: 56px;
+  pointer-events: none;
+  opacity: .72;
+}
+
+.rail-viewport::before {
+  left: 0;
+  background: linear-gradient(to right, rgba(10, 10, 10, .72), rgba(10, 10, 10, 0));
+}
+
+.rail-viewport::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(10, 10, 10, .72), rgba(10, 10, 10, 0));
+}
+
+:root[data-theme='light'] .rail-viewport::before {
+  background: linear-gradient(to right, rgba(250, 248, 243, .82), rgba(250, 248, 243, 0));
+}
+
+:root[data-theme='light'] .rail-viewport::after {
+  background: linear-gradient(to left, rgba(250, 248, 243, .82), rgba(250, 248, 243, 0));
+}
+
 .rail-edge-control {
   position: absolute;
   top: 50%;
   z-index: 4;
   display: grid;
-  width: 42px;
-  height: 56px;
+  width: 38px;
+  height: 64px;
   place-items: center;
   transform: translateY(-58%);
-  background: rgba(8, 8, 8, 0.76);
-  color: #fff;
-  font-size: 34px;
+  background: rgba(255, 255, 255, .11);
+  border: 1px solid rgba(255, 255, 255, .14);
+  color: rgba(255, 255, 255, .92);
+  font-size: 30px;
   line-height: 1;
-  backdrop-filter: blur(8px);
-  transition: opacity .15s ease, background-color .15s ease;
+  opacity: .56;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .16);
+  transition:
+    opacity .16s ease,
+    background-color .16s ease,
+    border-color .16s ease,
+    transform .16s ease,
+    box-shadow .16s ease;
 }
 
 .rail-edge-control-prev {
-  left: 8px;
+  left: 10px;
 }
 
 .rail-edge-control-next {
-  right: 8px;
+  right: 10px;
+}
+
+.rail-viewport:hover .rail-edge-control:not(:disabled) {
+  opacity: .86;
 }
 
 .rail-edge-control:hover:not(:disabled) {
-  background: rgba(8, 8, 8, 0.94);
-  color: var(--accent);
+  background: rgba(255, 255, 255, .19);
+  border-color: rgba(255, 255, 255, .24);
+  color: #fff;
+  transform: translateY(-58%) scale(1.035);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .22);
+}
+
+:root[data-theme='light'] .rail-edge-control {
+  background: rgba(255, 255, 255, .58);
+  border-color: rgba(20, 17, 9, .10);
+  color: rgba(20, 17, 9, .82);
+  box-shadow: 0 8px 24px rgba(60, 50, 30, .10);
+}
+
+:root[data-theme='light'] .rail-edge-control:hover:not(:disabled) {
+  background: rgba(255, 255, 255, .82);
+  border-color: rgba(20, 17, 9, .16);
+  color: var(--text-strong);
 }
 
 .rail-edge-control:disabled {
