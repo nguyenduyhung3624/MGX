@@ -1,3 +1,41 @@
+
+/* Home hero follows the same direct-manipulation gesture as discovery rails. */
+.popular-hero {
+  touch-action: pan-y;
+}
+
+.popular-hero-link,
+.popular-hero-link img {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+@media (pointer: fine) {
+  .popular-hero {
+    cursor: grab;
+  }
+
+  .popular-hero.is-dragging {
+    cursor: grabbing;
+    user-select: none;
+  }
+
+  .popular-hero .hero-tools,
+  .popular-hero .popular-controls,
+  .popular-hero .home-menu-toggle,
+  .popular-hero .hero-tools *,
+  .popular-hero .popular-controls *,
+  .popular-hero .home-menu-toggle * {
+    cursor: auto;
+  }
+
+  .popular-hero .hero-tools button,
+  .popular-hero .popular-controls button,
+  .popular-hero .home-menu-toggle {
+    cursor: pointer;
+  }
+}
+
 .rail-heading .rail-more {
   display: grid;
   width: 34px;
