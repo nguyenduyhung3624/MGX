@@ -12,10 +12,6 @@
   color: var(--accent);
 }
 
-.manga-rail .rail-grid {
-  touch-action: pan-y;
-}
-
 .manga-rail .rail-card,
 .manga-rail .rail-card img {
   -webkit-user-drag: none;
