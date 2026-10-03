@@ -8,12 +8,13 @@ type BrowseCollection = 'recommended' | 'self-published' | 'seasonal' | 'recentl
 
 type CollectionConfig = {
   title: string
+  eyebrow: string
   description: string
   load: (limit: number, offset: number) => Promise<MangaResponse>
-  offsetBase?: number
 }
 
-const pageSize = 24
+const pageSize = 20
+const maxPages = 3
 const fallbackCover = 'https://placehold.co/300x450/1c1c1c/ffffff?text=MANGA'
 
 const getMangaTitle = (manga: Manga) => {
@@ -39,13 +40,14 @@ const getConfig = (collection?: string): CollectionConfig | undefined => {
   const configs: Record<BrowseCollection, CollectionConfig> = {
     recommended: {
       title: 'Recommended',
-      description: 'Popular English-readable manga, ordered by follows.',
+      eyebrow: 'HAND-PICKED FROM POPULAR TITLES',
+      description: 'A focused selection of popular English-readable manga instead of the entire MangaDex catalogue.',
       load: (limit, offset) => getPopularManga(limit, offset),
     },
     'self-published': {
       title: 'Self-Published',
-      description: 'A deeper ongoing-title selection from the discovery feed.',
-      offsetBase: 60,
+      eyebrow: 'DISCOVERY PICKS',
+      description: 'A compact set of ongoing titles from deeper in the discovery feed.',
       load: (limit, offset) => getMangaPage(
         { 'order[followedCount]': 'desc', 'status[]': ['ongoing'] },
         limit,
@@ -54,7 +56,8 @@ const getConfig = (collection?: string): CollectionConfig | undefined => {
     },
     seasonal: {
       title: `Seasonal: Summer ${currentYear}`,
-      description: `Recently updated titles first released in ${currentYear}.`,
+      eyebrow: 'THIS YEAR',
+      description: `A short seasonal shelf of titles first released in ${currentYear}, ordered by recent activity.`,
       load: (limit, offset) => getMangaPage(
         { year: currentYear, 'order[latestUploadedChapter]': 'desc' },
         limit,
@@ -63,7 +66,8 @@ const getConfig = (collection?: string): CollectionConfig | undefined => {
     },
     'recently-added': {
       title: 'Recently Added',
-      description: 'Newly created manga entries, newest first.',
+      eyebrow: 'FRESH ENTRIES',
+      description: 'A limited look at newly created manga entries rather than a full database listing.',
       load: (limit, offset) => getNewManga(limit, offset),
     },
   }
@@ -78,7 +82,9 @@ const Browse = () => {
   const [searchParams] = useSearchParams()
   const config = getConfig(collection)
   const rawPage = Number(searchParams.get('page') || '1')
-  const page = Number.isFinite(rawPage) && rawPage > 0 ? Math.floor(rawPage) : 1
+  const page = Number.isFinite(rawPage) && rawPage > 0
+    ? Math.min(maxPages, Math.floor(rawPage))
+    : 1
   const offset = (page - 1) * pageSize
 
   const query = useQuery({
@@ -106,17 +112,15 @@ const Browse = () => {
   }
 
   const items = query.data?.data ?? []
-  const effectiveTotal = Math.max(0, (query.data?.total ?? 0) - (config.offsetBase ?? 0))
-  const totalPages = Math.max(1, Math.ceil(effectiveTotal / pageSize))
   const hasPrevious = page > 1
-  const hasNext = page < totalPages && items.length > 0
+  const hasNext = page < maxPages && items.length === pageSize
 
   return (
     <section className="browse-page">
       <header className="browse-header">
         <Link className="browse-back" to="/">← Home</Link>
         <div>
-          <p className="eyebrow">DISCOVER</p>
+          <p className="browse-eyebrow">{config.eyebrow}</p>
           <h1>{config.title}</h1>
           <p>{config.description}</p>
         </div>
@@ -130,7 +134,7 @@ const Browse = () => {
           <button type="button" onClick={() => query.refetch()}>Try again</button>
         </div>
       ) : items.length === 0 ? (
-        <div className="browse-state">No titles are available on this page.</div>
+        <div className="browse-state">No titles are available here right now.</div>
       ) : (
         <div className="browse-grid">
           {items.map((manga) => (
@@ -146,24 +150,25 @@ const Browse = () => {
                 />
               </div>
               <strong>{getMangaTitle(manga)}</strong>
-              <span>{manga.attributes.status || 'Unknown status'}</span>
             </Link>
           ))}
         </div>
       )}
 
-      {!query.isLoading && !query.isError && (
+      {!query.isLoading && !query.isError && items.length > 0 && (
         <nav className="browse-pagination" aria-label="Collection pages">
           {hasPrevious ? (
-            <Link to={`/browse/${collection}?page=${page - 1}`}>← Previous</Link>
+            <Link to={`/browse/${collection}?page=${page - 1}`}>← Previous picks</Link>
           ) : (
-            <span aria-disabled="true">← Previous</span>
+            <span />
           )}
-          <span>Page {page}{effectiveTotal ? ` of ${totalPages}` : ''}</span>
+
+          <span className="browse-page-marker">{String(page).padStart(2, '0')} / {String(maxPages).padStart(2, '0')}</span>
+
           {hasNext ? (
-            <Link to={`/browse/${collection}?page=${page + 1}`}>Next →</Link>
+            <Link to={`/browse/${collection}?page=${page + 1}`}>More picks →</Link>
           ) : (
-            <span aria-disabled="true">Next →</span>
+            <Link to="/">Back home →</Link>
           )}
         </nav>
       )}
