@@ -68,13 +68,6 @@ type MangaRailProps = {
 
 const MangaRail = ({ title, items, href, loading }: MangaRailProps) => {
   const railRef = useRef<HTMLDivElement>(null)
-  const dragRef = useRef({
-    pointerId: -1,
-    startX: 0,
-    scrollLeft: 0,
-    moved: false,
-  })
-  const [dragging, setDragging] = useState(false)
   const [atStart, setAtStart] = useState(true)
   const [atEnd, setAtEnd] = useState(false)
 
@@ -108,46 +101,6 @@ const MangaRail = ({ title, items, href, loading }: MangaRailProps) => {
     }
   }, [items.length])
 
-  const startDrag = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (event.pointerType !== 'mouse' || event.button !== 0) return
-    const rail = railRef.current
-    if (!rail) return
-
-    dragRef.current = {
-      pointerId: event.pointerId,
-      startX: event.clientX,
-      scrollLeft: rail.scrollLeft,
-      moved: false,
-    }
-    event.currentTarget.setPointerCapture(event.pointerId)
-    setDragging(true)
-  }
-
-  const dragRail = (event: React.PointerEvent<HTMLDivElement>) => {
-    const rail = railRef.current
-    if (!rail || dragRef.current.pointerId !== event.pointerId) return
-
-    const delta = event.clientX - dragRef.current.startX
-    if (Math.abs(delta) > 5) dragRef.current.moved = true
-    rail.scrollLeft = dragRef.current.scrollLeft - delta
-  }
-
-  const stopDrag = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (dragRef.current.pointerId !== event.pointerId) return
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId)
-    }
-    dragRef.current.pointerId = -1
-    setDragging(false)
-  }
-
-  const cancelDraggedLink = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (!dragRef.current.moved) return
-    event.preventDefault()
-    event.stopPropagation()
-    dragRef.current.moved = false
-  }
-
   return (
     <section className="manga-rail">
       <div className="rail-heading">
@@ -176,15 +129,7 @@ const MangaRail = ({ title, items, href, loading }: MangaRailProps) => {
       </div>
       {loading ? <div className="state-message">Loading...</div> : (
         <div className="rail-viewport">
-          <div
-            className={`rail-grid${dragging ? ' is-dragging' : ''}`}
-            onClickCapture={cancelDraggedLink}
-            onPointerCancel={stopDrag}
-            onPointerDown={startDrag}
-            onPointerMove={dragRail}
-            onPointerUp={stopDrag}
-            ref={railRef}
-          >
+          <div className="rail-grid" ref={railRef}>
             {items.map((manga) => <Link className="rail-card" key={manga.id} to={`/manga/${manga.id}`}>
               <div className="rail-cover">
                 <img alt={getMangaTitle(manga)} draggable={false} loading="lazy" decoding="async" onError={handleImageError} src={getCoverUrl(manga, 512)} />
