@@ -51,7 +51,7 @@ const LayoutCLient = ({ children }: LayoutCLientProps) => {
 
       <div className={`main-area${isAuthRoute ? ' auth-main-area' : ''}`}>
         {location.pathname !== '/' && (
-          <Header onMenuOpen={() => setMobileMenuOpen(true)} onThemeToggle={toggleTheme} />
+          <Header onMenuOpen={() => setMobileMenuOpen(true)} onThemeToggle={toggleTheme} showSearch={!isAuthRoute} />
         )}
 
         <main className={`content${isAuthRoute ? ' auth-content' : ''}`}>{children}</main>
