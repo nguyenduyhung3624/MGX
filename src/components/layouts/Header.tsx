@@ -2,9 +2,9 @@ import { Link } from 'react-router-dom'
 import SearchForm from '../manga/SearchForm'
 import { useAuth } from '../../hooks/useAuth'
 
-type HeaderProps = { onMenuOpen: () => void; onThemeToggle: () => void }
+type HeaderProps = { onMenuOpen: () => void; onThemeToggle: () => void; showSearch?: boolean }
 
-const Header = ({ onMenuOpen, onThemeToggle }: HeaderProps) => {
+const Header = ({ onMenuOpen, onThemeToggle, showSearch = true }: HeaderProps) => {
   const { user } = useAuth()
 
   return (
@@ -15,7 +15,7 @@ const Header = ({ onMenuOpen, onThemeToggle }: HeaderProps) => {
         </svg>
       </button>
 
-      <SearchForm />
+      {showSearch && <SearchForm />}
       <div className="top-bar-actions">
         <Link aria-label={user ? `Signed in as ${user.displayName}` : 'Sign in'} className="icon-btn" title={user ? user.displayName : 'Sign in'} to={user ? '/library' : '/login'}>
           <svg viewBox="0 0 24 24" aria-hidden="true">
