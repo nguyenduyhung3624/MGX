@@ -261,6 +261,14 @@ const Home = () => {
     heroDragRef.current.moved = false
   }
 
+  const toggleTheme = () => {
+    const root = document.documentElement
+    const isLight = root.getAttribute('data-theme') === 'light'
+    const nextTheme = isLight ? 'dark' : 'light'
+    root.setAttribute('data-theme', nextTheme)
+    localStorage.setItem('manga-theme', nextTheme)
+  }
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
@@ -317,6 +325,15 @@ const Home = () => {
               <Link aria-label={user ? `Signed in as ${user.displayName}` : "Sign in"} className="hero-avatar" title={user ? user.displayName : "Sign in"} to={user ? "/library" : "/login"}>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4.5 20.5c1-4 4-6 7.5-6s6.5 2 7.5 6" /></svg>
               </Link>
+              <button aria-label="Toggle light/dark theme" className="hero-theme-toggle" onClick={toggleTheme} title="Toggle light/dark theme" type="button">
+                <svg className="hero-theme-dark" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z" />
+                </svg>
+                <svg className="hero-theme-light" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="12" r="4.2" />
+                  <path d="M12 2.5v2.4M12 19.1v2.4M4.4 4.4l1.7 1.7M17.9 17.9l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.4 19.6l1.7-1.7M17.9 6.1l1.7-1.7" />
+                </svg>
+              </button>
             </div>
 
             <Link className="popular-hero-link" key={featured.id} onClick={cancelHeroClickAfterDrag} to={`/manga/${featured.id}`}>
