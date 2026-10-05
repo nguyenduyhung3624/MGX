@@ -2996,8 +2996,8 @@ button, input, select, .search-box, .update-row, .chapter-item, .manga-info-pane
 /* Final sidebar brand alignment. */
 @media (min-width: 981px) {
   .side-brand .side-logo {
-    padding-left: 39px;
-    padding-right: 0;
+    padding-left: 10px;
+    padding-right: 10px;
   }
 }
 
