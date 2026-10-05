@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
-import { useLocalLibrary } from '../../hooks/useLocalLibrary'
 import { useAuth } from '../../hooks/useAuth'
 
 type SidebarProps = { open?: boolean; onClose?: () => void }
 
 const Sidebar = ({ open = false, onClose }: SidebarProps) => {
-  const library = useLocalLibrary()
   const { user, logout } = useAuth()
   const [theme, setTheme] = useState<'dark' | 'light'>(() =>
     document.documentElement.dataset.theme === 'light' ? 'light' : 'dark'
