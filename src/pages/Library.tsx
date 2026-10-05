@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom'
 import SaveButton from '../components/manga/SaveButton'
 import { useLocalLibrary } from '../hooks/useLocalLibrary'
 import { importLibrary, maxBackupBytes, readLibrary } from '../services/localLibrary'
+import { useAuth } from '../hooks/useAuth'
 
 export default function Library() {
   const library = useLocalLibrary()
+  const { user } = useAuth()
   const [filter, setFilter] = useState('')
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
@@ -28,7 +30,7 @@ export default function Library() {
 
   return <section className="saved-library">
     <div className="content-head"><h1>Saved manga</h1><span>{library.saved.length} {library.saved.length === 1 ? 'title' : 'titles'}</span></div>
-    <p className="library-note">Saved in this browser without an account. Your library does not sync across devices and will be lost if you clear site data.</p>
+    <p className="library-note">{user ? `Signed in as ${user.displayName}. Saved manga and reading progress sync with your MGX account.` : 'Saved in this browser only. Sign in to sync your library and reading progress across devices.'}</p>
     <div className="library-toolbar">
       <input type="search" aria-label="Search saved manga" placeholder="Search your library…" value={filter} onChange={event => setFilter(event.target.value)} />
       <button onClick={exportBackup} disabled={Boolean(library.error)}>Export backup</button>
