@@ -70,9 +70,6 @@ const Sidebar = ({ open = false, onClose }: SidebarProps) => {
               </svg>
               Reading history
             </a>
-          </nav>
-
-          <nav className="nav-group side-nav-secondary">
             <a className="nav-link" href="#updates">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M4 6h16M4 12h11M4 18h7" />
