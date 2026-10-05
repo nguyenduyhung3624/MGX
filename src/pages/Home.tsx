@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getLatestManga, getPopularManga } from '../services/manga'
 import { getDiscoveryCollection } from '../services/discoveryCollections'
+import { useAuth } from '../hooks/useAuth'
 import type { Manga } from '../types/manga'
 
 const getMangaTitle = (manga: Manga) => {
@@ -144,6 +145,7 @@ const MangaRail = ({ title, items, href, loading }: MangaRailProps) => {
 
 const Home = () => {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [popularIndex, setPopularIndex] = useState(0)
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const [heroDragging, setHeroDragging] = useState(false)
@@ -312,7 +314,7 @@ const Home = () => {
                   <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20 16.5 16.5" /></svg>
                 </button>
               </div>
-              <Link aria-label="Saved manga" className="hero-avatar" title="Saved manga" to="/library">
+              <Link aria-label={user ? `Signed in as ${user.displayName}` : "Sign in"} className="hero-avatar" title={user ? user.displayName : "Sign in"} to={user ? "/library" : "/login"}>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4.5 20.5c1-4 4-6 7.5-6s6.5 2 7.5 6" /></svg>
               </Link>
             </div>
