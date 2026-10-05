@@ -25,7 +25,7 @@ Manga and chapter availability depend on MangaDex and the translations available
 - Axios
 - Tailwind CSS 4 and custom CSS
 - Vercel serverless functions for API and image proxying
-- Supabase Auth REST API for optional accounts
+- Supabase JavaScript client for optional account authentication
 
 ## Getting started
 
@@ -42,14 +42,20 @@ Vite serves the frontend locally. The app also uses Vercel routes under `/api/*`
 
 ### Optional account authentication
 
+Install the Supabase client:
+
+```bash
+npm install @supabase/supabase-js
+```
+
 MGX account registration and sign-in use Supabase Auth. Create a local `.env` file (or configure the same values in Vercel) with:
 
 ```env
 VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+VITE_SUPABASE_PUBLISHABLE_KEY=YOUR_SUPABASE_PUBLISHABLE_KEY
 ```
 
-The anon key is intended for browser use. Do not expose a Supabase service-role key in the frontend. If email confirmation is enabled in Supabase Auth, registration asks the reader to confirm their email before signing in.
+Use the Supabase publishable key in the frontend. Never expose a Supabase secret or service-role key in the browser. If email confirmation is enabled in Supabase Auth, registration asks the reader to confirm their email before signing in.
 
 The existing reading library remains local to the browser for now; signing in does not yet sync saved manga or reading progress across devices.
 
