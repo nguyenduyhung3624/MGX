@@ -52,7 +52,7 @@ export function readLibrary(): LocalLibrary {
   return raw === null ? { version: 1, saved: [], progress: [] } : parseLibrary(raw)
 }
 
-function writeLibrary(library: LocalLibrary) {
+export function writeLibrary(library: LocalLibrary) {
   const raw = JSON.stringify(library)
   parseLibrary(raw)
   try { localStorage.setItem(libraryKey, raw) } catch { throw new Error('Could not save in this browser. Storage may be full or blocked.') }
@@ -84,6 +84,10 @@ export function rememberChapter(mangaId: string, chapterId: string, chapter: str
   if (library.progress.find(item => item.mangaId === mangaId)?.chapterId === chapterId) return
   library.progress = [{ mangaId, chapterId, chapter: chapter.slice(0, 100), readAt: Date.now() }, ...library.progress.filter(item => item.mangaId !== mangaId)].slice(0, maxEntries)
   writeLibrary(library)
+}
+
+export function clearLibrary() {
+  writeLibrary({ version: 1, saved: [], progress: [] })
 }
 
 export function importLibrary(raw: string): number {
