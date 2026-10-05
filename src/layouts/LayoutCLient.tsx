@@ -10,6 +10,7 @@ type LayoutCLientProps = {
 
 const LayoutCLient = ({ children }: LayoutCLientProps) => {
   const location = useLocation()
+  const isAuthRoute = location.pathname === '/login' || location.pathname === '/register'
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
@@ -45,16 +46,16 @@ const LayoutCLient = ({ children }: LayoutCLientProps) => {
   }
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell${isAuthRoute ? ' auth-route' : ''}`}>
       <Sidebar open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
 
-      <div className="main-area">
+      <div className={`main-area${isAuthRoute ? ' auth-main-area' : ''}`}>
         {location.pathname !== '/' && (
           <Header onMenuOpen={() => setMobileMenuOpen(true)} onThemeToggle={toggleTheme} />
         )}
 
-        <main className="content">{children}</main>
-        <Footer />
+        <main className={`content${isAuthRoute ? ' auth-content' : ''}`}>{children}</main>
+        {!isAuthRoute && <Footer />}
       </div>
     </div>
   )
