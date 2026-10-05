@@ -57,7 +57,7 @@ VITE_SUPABASE_PUBLISHABLE_KEY=YOUR_SUPABASE_PUBLISHABLE_KEY
 
 Use the Supabase publishable key in the frontend. Never expose a Supabase secret or service-role key in the browser. If email confirmation is enabled in Supabase Auth, registration asks the reader to confirm their email before signing in.
 
-The existing reading library remains local to the browser for now; signing in does not yet sync saved manga or reading progress across devices.
+Signed-in readers can sync saved manga and reading progress through Supabase. Run `supabase/migrations/20261005_cloud_library.sql` once in the Supabase SQL Editor (or through the Supabase CLI) to create the required `profiles`, `user_library`, and `reading_progress` tables with Row Level Security.
 
 ### Available commands
 
@@ -73,7 +73,7 @@ The existing reading library remains local to the browser for now; signing in do
 
 Use the save button on manga listings or details to add a title to your library. The `/library` page lists saved manga and supports JSON backup export/import. No account, MangaDex token, or separate database is required.
 
-Library data is stored in your browser's `localStorage` under `mgx-library-v1`. It persists across reloads and updates other tabs on the same origin, but **does not sync across devices**. Clearing the site's data removes the local library unless you have exported a backup.
+Library data is cached in your browser's `localStorage` under `mgx-library-v1`. Signed-in readers also sync saved manga and reading progress to Supabase; signed-out readers remain local-only. Clearing site data removes the local cache, while signed-in data can be restored from the account on the next successful sync.
 
 Import merges saved titles by MangaDex ID and keeps the newer reading position. Invalid backups leave existing data unchanged. Current limits are 2,000 saved titles and a 2 MB backup file.
 
