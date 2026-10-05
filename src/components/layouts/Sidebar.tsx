@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useLocalLibrary } from '../../hooks/useLocalLibrary'
+import { useAuth } from '../../hooks/useAuth'
 
 type SidebarProps = { open?: boolean; onClose?: () => void }
 
 const Sidebar = ({ open = false, onClose }: SidebarProps) => {
   const library = useLocalLibrary()
+  const { user, logout } = useAuth()
   const [theme, setTheme] = useState<'dark' | 'light'>(() =>
     document.documentElement.dataset.theme === 'light' ? 'light' : 'dark'
   )
@@ -86,6 +88,25 @@ const Sidebar = ({ open = false, onClose }: SidebarProps) => {
             Random
           </a>
         </nav>
+
+        <div className="side-auth">
+          {user ? (
+            <>
+              <div className="side-auth-user">
+                <strong>{user.displayName}</strong>
+                <span>{user.email}</span>
+              </div>
+              <button className="side-auth-signout" onClick={() => void logout()} type="button">
+                Sign out
+              </button>
+            </>
+          ) : (
+            <div className="side-auth-actions">
+              <NavLink className="side-auth-link" to="/login">Sign in</NavLink>
+              <NavLink className="side-auth-link is-primary" to="/register">Create account</NavLink>
+            </div>
+          )}
+        </div>
       </aside>
 
       <button aria-label="Close menu" className={'side-nav-backdrop' + (open ? ' open' : '')} onClick={onClose} type="button" />
