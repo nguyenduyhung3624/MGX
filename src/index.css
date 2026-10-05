@@ -2914,12 +2914,12 @@ button, input, select, .search-box, .update-row, .chapter-item, .manga-info-pane
     flex: 1;
     min-height: 0;
     flex-direction: column;
-    justify-content: center;
-    gap: 28px;
-    padding: 18px 0;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 18px 0 0;
   }
 
-  .side-nav-main .nav-heading {
-    margin-top: 0;
+  .side-nav-secondary {
+    margin-top: 2px;
   }
 }
