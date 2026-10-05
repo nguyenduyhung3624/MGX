@@ -163,6 +163,8 @@ export const signOut = async (): Promise<void> => {
     if (session?.accessToken) {
       await request('/logout', { method: 'POST' }, session.accessToken)
     }
+  } catch {
+    // Local sign-out should still complete if the remote session has already expired.
   } finally {
     localStorage.removeItem(SESSION_KEY)
     emitAuthChange()
