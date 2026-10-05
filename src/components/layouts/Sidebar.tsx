@@ -72,26 +72,21 @@ const Sidebar = ({ open = false, onClose }: SidebarProps) => {
             </a>
           </nav>
 
-          <NavLink className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`} to="/search">Search manga</NavLink>
-
-          <div>
-            <div className="nav-heading">EXPLORE</div>
-            <nav className="nav-group">
-              <a className="nav-link" href="#updates">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M4 6h16M4 12h11M4 18h7" />
-                </svg>
-                Recently updated
-              </a>
-              <a className="nav-link" href="#">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M16.5 3.5 20 7l-3.5 3.5M20 7H10a5 5 0 0 0 0 10h1" />
-                  <path d="M7.5 20.5 4 17l3.5-3.5" />
-                </svg>
-                Random
-              </a>
-            </nav>
-          </div>
+          <nav className="nav-group side-nav-secondary">
+            <a className="nav-link" href="#updates">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 6h16M4 12h11M4 18h7" />
+              </svg>
+              Recently updated
+            </a>
+            <a className="nav-link" href="#">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M16.5 3.5 20 7l-3.5 3.5M20 7H10a5 5 0 0 0 0 10h1" />
+                <path d="M7.5 20.5 4 17l3.5-3.5" />
+              </svg>
+              Random
+            </a>
+          </nav>
         </div>
 
         <div className="side-auth">
