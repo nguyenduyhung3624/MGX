@@ -2869,7 +2869,7 @@ button, input, select, .search-box, .update-row, .chapter-item, .manga-info-pane
   padding-bottom: 6px;
 }
 .theme-switch {
-  display: flex;
+  display: none;
   align-items: center;
   align-self: flex-start;
   gap: 8px;
@@ -2921,5 +2921,35 @@ button, input, select, .search-box, .update-row, .chapter-item, .manga-info-pane
 
   .side-nav-secondary {
     margin-top: 2px;
+  }
+}
+
+
+/* Responsive navigation controls: one theme switch per viewport, no desktop hamburger. */
+@media (min-width: 981px) {
+  .nav-toggle {
+    display: none !important;
+  }
+
+  #themeToggle {
+    display: flex;
+  }
+
+  .theme-switch {
+    display: none;
+  }
+}
+
+@media (max-width: 980px) {
+  .nav-toggle {
+    display: flex;
+  }
+
+  #themeToggle {
+    display: none;
+  }
+
+  .theme-switch {
+    display: flex;
   }
 }
