@@ -1,8 +1,12 @@
+import { Link } from 'react-router-dom'
 import SearchForm from '../manga/SearchForm'
+import { useAuth } from '../../hooks/useAuth'
 
 type HeaderProps = { onMenuOpen: () => void; onThemeToggle: () => void }
 
 const Header = ({ onMenuOpen, onThemeToggle }: HeaderProps) => {
+  const { user } = useAuth()
+
   return (
     <header className="top-bar">
       <button aria-label="Open menu" className="icon-btn nav-toggle" onClick={onMenuOpen} type="button">
@@ -13,6 +17,12 @@ const Header = ({ onMenuOpen, onThemeToggle }: HeaderProps) => {
 
       <SearchForm />
       <div className="top-bar-actions">
+        <Link aria-label={user ? `Signed in as ${user.displayName}` : 'Sign in'} className="icon-btn" title={user ? user.displayName : 'Sign in'} to={user ? '/library' : '/login'}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="8" r="4" />
+            <path d="M4.5 20.5c1-4 4-6 7.5-6s6.5 2 7.5 6" />
+          </svg>
+        </Link>
         <button className="icon-btn" id="themeToggle" onClick={onThemeToggle} title="Toggle light/dark theme" type="button">
           <svg className="icon-dark" viewBox="0 0 24 24">
             <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z" />
