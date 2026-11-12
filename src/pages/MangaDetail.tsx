@@ -6,6 +6,7 @@ import SaveButton from '../components/manga/SaveButton'
 import { toSavedManga } from '../services/localLibrary'
 import { useLocalLibrary } from '../hooks/useLocalLibrary'
 import type { AggregateChapter, Manga } from '../types/manga'
+import { getCoverImageUrl } from '../services/mangaDexImages'
 
 const getTitle = (manga?: Manga) => {
 	const titles = manga?.attributes.title || {}
@@ -17,7 +18,7 @@ const fallbackCover = 'https://placehold.co/240x340/1c1c1c/ffffff?text=MANGA'
 const getCoverUrl = (manga?: Manga) => {
 	const cover = manga?.relationships.find((item) => item.type === 'cover_art')
 	return cover?.attributes?.fileName
-		? `/api/cover?mangaId=${encodeURIComponent(manga?.id || '')}&fileName=${encodeURIComponent(cover.attributes.fileName)}&size=512`
+		? getCoverImageUrl(manga?.id || '', cover.attributes.fileName, 512)
 		: fallbackCover
 }
 
