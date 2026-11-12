@@ -164,12 +164,7 @@ const Home = () => {
   })
   const popularQuery = useQuery({
     queryKey: ['popular-manga'],
-    queryFn: () => getPopularManga(8),
-    staleTime: 5 * 60 * 1000,
-  })
-  const recommendedQuery = useQuery({
-    queryKey: ['home-recommended'],
-    queryFn: () => getDiscoveryCollection('recommended').load(15, 0),
+    queryFn: () => getPopularManga(15),
     staleTime: 5 * 60 * 1000,
   })
   const selfPublishedQuery = useQuery({
@@ -187,11 +182,11 @@ const Home = () => {
     queryFn: () => getDiscoveryCollection('recently-added').load(15, 0),
     staleTime: 5 * 60 * 1000,
   })
-  const popularItems = popularQuery.data?.data ?? []
+  const popularItems = (popularQuery.data?.data ?? []).slice(0, 8)
   const featured = popularItems[popularIndex] ?? popularItems[0]
 
   // Keep discovery sections distinct even when MangaDex queries overlap.
-  const recommendedItems = recommendedQuery.data?.data ?? []
+  const recommendedItems = popularQuery.data?.data ?? []
   const recommendedIds = new Set(recommendedItems.map((manga) => manga.id))
   const selfPublishedItems = (selfPublishedQuery.data?.data ?? []).filter((manga) => !recommendedIds.has(manga.id))
   const selfPublishedIds = new Set(selfPublishedItems.map((manga) => manga.id))
@@ -381,7 +376,7 @@ const Home = () => {
         )}
       </section>
 
-      <MangaRail href="/browse/recommended" loading={recommendedQuery.isLoading} items={recommendedItems} title="Recommended" />
+      <MangaRail href="/browse/recommended" loading={popularQuery.isLoading} items={recommendedItems} title="Recommended" />
       <MangaRail href="/browse/self-published" loading={selfPublishedQuery.isLoading} items={selfPublishedItems} title="Self-Published" />
       <MangaRail href="/browse/seasonal" loading={seasonalQuery.isLoading} items={seasonalItems} title={`Seasonal: Summer ${new Date().getFullYear()}`} />
       <MangaRail href="/browse/recently-added" loading={recentlyAddedQuery.isLoading} items={recentlyAddedItems} title="Recently Added" />
