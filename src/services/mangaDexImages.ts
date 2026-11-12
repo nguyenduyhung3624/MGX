@@ -1,11 +1,14 @@
-const MANGADEX_COVER_HOST = 'https://uploads.mangadex.org'
-
 export function getCoverImageUrl(
   mangaId: string,
   fileName: string,
   size: 256 | 512 = 256,
 ): string {
-  return `${MANGADEX_COVER_HOST}/covers/${encodeURIComponent(mangaId)}/${encodeURIComponent(fileName)}.${size}.jpg`
+  const params = new URLSearchParams({
+    mangaId,
+    fileName,
+    size: String(size),
+  })
+  return `/api/cover?${params.toString()}`
 }
 
 export function getChapterPageImageUrl(
@@ -25,5 +28,6 @@ export function getChapterPageImageUrl(
     throw new Error('MangaDex returned an unsupported image host.')
   }
 
-  return `${base.origin}/${quality}/${encodeURIComponent(hash)}/${encodeURIComponent(fileName)}`
+  const target = `${base.origin}/${quality}/${encodeURIComponent(hash)}/${encodeURIComponent(fileName)}`
+  return `/api/page?url=${encodeURIComponent(target)}`
 }
