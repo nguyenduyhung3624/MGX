@@ -6,6 +6,7 @@ import { getMangaAggregate } from '../services/manga'
 import { rememberChapter } from '../services/localLibrary'
 import type { AggregateChapter } from '../types/manga'
 import { preloadPages } from '../services/preloadPages'
+import { getChapterPageImageUrl } from '../services/mangaDexImages'
 
 type ReaderMode = 'scroll' | 'paged'
 
@@ -90,7 +91,7 @@ const ReaderPage = () => {
 		const { baseUrl, chapter } = pagesQuery.data
 		const quality = chapter.data.length ? 'data' : 'data-saver'
 		const files = chapter.data.length ? chapter.data : chapter.dataSaver
-		return files.map(file => `/api/page?url=${encodeURIComponent(`${baseUrl}/${quality}/${chapter.hash}/${file}`)}`)
+		return files.map(file => getChapterPageImageUrl(baseUrl, quality, chapter.hash, file))
 	}, [pagesQuery.data])
 	useEffect(() => {
 		if (readerMode !== 'paged' || chapterQuery.data?.attributes.isUnavailable || chapterQuery.data?.attributes.externalUrl) return
@@ -172,7 +173,7 @@ const ReaderPage = () => {
 	const quality = chapter.data.length ? 'data' : 'data-saver'
 	if (!pageFiles.length) return <div className="reader-state"><h1>No readable pages</h1><p>MangaDex returned no pages for this chapter.</p>{back}</div>
 
-	const imageUrl = (file: string) => `/api/page?url=${encodeURIComponent(`${baseUrl}/${quality}/${chapter.hash}/${file}`)}`
+	const imageUrl = (file: string) => getChapterPageImageUrl(baseUrl, quality, chapter.hash, file)
 	const markChapterRead = () => {
 		if (!mangaId || !chapterId || recordedChapter.current === chapterId) return
 		recordedChapter.current = chapterId
