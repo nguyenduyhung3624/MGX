@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import SaveButton from '../components/manga/SaveButton'
 import { toSavedManga } from '../services/localLibrary'
 import { getMangaPage } from '../services/manga'
+import { getCoverImageUrl } from '../services/mangaDexImages'
 
 const limit = 20
 
@@ -29,7 +30,7 @@ export default function Search() {
         const name = manga.attributes.title.en || Object.values(manga.attributes.title)[0] || 'Untitled'
         const cover = manga.relationships.find((item) => item.type === 'cover_art')?.attributes?.fileName
         return <article className="search-result-with-save" key={manga.id}><Link className="search-result" to={`/manga/${manga.id}`}>
-          <div className="search-cover">{cover ? <img loading="lazy" src={`/api/cover?mangaId=${encodeURIComponent(manga.id)}&fileName=${encodeURIComponent(cover)}&size=256`} alt={name} onError={(event) => { event.currentTarget.style.display = 'none' }} /> : <span>No cover</span>}</div>
+          <div className="search-cover">{cover ? <img loading="lazy" src={getCoverImageUrl(manga.id, cover, 256)} alt={name} onError={(event) => { event.currentTarget.style.display = 'none' }} /> : <span>No cover</span>}</div>
           <div><h2>{name}</h2><p>{manga.attributes.year ?? 'Year unknown'} · {manga.attributes.status}</p>{unavailable && <span className="unavailable-badge">Has unavailable chapters</span>}<p className="search-description">{manga.attributes.description.en || Object.values(manga.attributes.description)[0] || 'No description available.'}</p></div>
         </Link><SaveButton manga={toSavedManga(manga)} compact /></article>
       })}</div>}
