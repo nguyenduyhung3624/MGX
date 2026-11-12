@@ -4,6 +4,7 @@ import SaveButton from '../components/manga/SaveButton'
 import { useLocalLibrary } from '../hooks/useLocalLibrary'
 import { importLibrary, maxBackupBytes, readLibrary } from '../services/localLibrary'
 import { useAuth } from '../hooks/useAuth'
+import { getCoverImageUrl } from '../services/mangaDexImages'
 
 export default function Library() {
   const library = useLocalLibrary()
@@ -54,7 +55,7 @@ export default function Library() {
     {!library.error && (items.length === 0 ? <div className="state-message"><p>{library.saved.length ? 'No matching manga found.' : 'No saved manga yet. Select the heart on the home page, search results, or manga details to save a title.'}</p><Link to="/search">Find manga →</Link></div> : <div className="saved-grid">{items.map(item => {
       const lastRead = progress.get(item.id)
       return <article className="saved-card" key={item.id}>
-        <Link className="saved-cover" to={`/manga/${item.id}`} aria-label={`View ${item.title}`}>{item.cover ? <img loading="lazy" src={`/api/cover?mangaId=${encodeURIComponent(item.id)}&fileName=${encodeURIComponent(item.cover)}&size=256`} alt={item.title} onError={event => { event.currentTarget.style.visibility = 'hidden' }} /> : <span>MGX</span>}</Link>
+        <Link className="saved-cover" to={`/manga/${item.id}`} aria-label={`View ${item.title}`}>{item.cover ? <img loading="lazy" src={getCoverImageUrl(item.id, item.cover, 256)} alt={item.title} onError={event => { event.currentTarget.style.visibility = 'hidden' }} /> : <span>MGX</span>}</Link>
         <div className="saved-card-copy"><Link to={`/manga/${item.id}`}><h2>{item.title}</h2></Link><p>{item.status}</p>{lastRead && <Link className="continue-reading" to={`/read/${lastRead.chapterId}`}>Continue reading · Chapter {lastRead.chapter || '?'}</Link>}<SaveButton manga={item} /></div>
       </article>
     })}</div>)}
