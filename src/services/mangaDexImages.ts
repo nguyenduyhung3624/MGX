@@ -24,10 +24,20 @@ export function getChapterPageImageUrl(
     hostname === 'mangadex.network' ||
     hostname.endsWith('.mangadex.network')
 
-  if (base.protocol !== 'https:' || !allowedHost) {
+  if (
+    base.protocol !== 'https:' ||
+    !allowedHost ||
+    base.username ||
+    base.password ||
+    base.search ||
+    base.hash
+  ) {
     throw new Error('MangaDex returned an unsupported image host.')
   }
 
-  const target = `${base.origin}/${quality}/${encodeURIComponent(hash)}/${encodeURIComponent(fileName)}`
+  // MangaDex@Home baseUrl may contain a temporary access-token path.
+  // Preserve it when appending the quality/hash/file segments.
+  const basePath = base.pathname.replace(/\/+$/, '')
+  const target = `${base.origin}${basePath}/${quality}/${encodeURIComponent(hash)}/${encodeURIComponent(fileName)}`
   return `/api/page?url=${encodeURIComponent(target)}`
 }
