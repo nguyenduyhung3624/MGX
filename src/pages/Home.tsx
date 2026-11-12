@@ -5,6 +5,7 @@ import { getLatestManga, getPopularManga } from '../services/manga'
 import { getDiscoveryCollection } from '../services/discoveryCollections'
 import { useAuth } from '../hooks/useAuth'
 import type { Manga } from '../types/manga'
+import { getCoverImageUrl } from '../services/mangaDexImages'
 
 const getMangaTitle = (manga: Manga) => {
   const titleMap = manga.attributes.title || {}
@@ -16,7 +17,7 @@ const fallbackCover = 'https://placehold.co/120x170/1c1c1c/ffffff?text=MANGA'
 const getCoverUrl = (manga: Manga, size: 256 | 512 = 256) => {
   const cover = manga.relationships.find((item) => item.type === 'cover_art')
   return cover?.attributes?.fileName
-    ? `/api/cover?mangaId=${encodeURIComponent(manga.id)}&fileName=${encodeURIComponent(cover.attributes.fileName)}&size=${size}`
+    ? getCoverImageUrl(manga.id, cover.attributes.fileName, size)
     : fallbackCover
 }
 
