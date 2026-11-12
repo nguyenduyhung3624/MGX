@@ -2,6 +2,10 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
     {
+      "source": "/api/mangadex/:path*",
+      "destination": "/api/mangadex?_mgx_path=:path*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
