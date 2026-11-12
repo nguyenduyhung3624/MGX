@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { getDiscoveryCollection, type DiscoveryCollection } from '../services/discoveryCollections'
 import type { Manga } from '../types/manga'
+import { getCoverImageUrl } from '../services/mangaDexImages'
 
 const pageSize = 20
 const maxPages = 3
@@ -16,7 +17,7 @@ const getMangaTitle = (manga: Manga) => {
 const getCoverUrl = (manga: Manga) => {
   const cover = manga.relationships.find((item) => item.type === 'cover_art')
   return cover?.attributes?.fileName
-    ? `/api/cover?mangaId=${encodeURIComponent(manga.id)}&fileName=${encodeURIComponent(cover.attributes.fileName)}&size=512`
+    ? getCoverImageUrl(manga.id, cover.attributes.fileName, 512)
     : fallbackCover
 }
 
