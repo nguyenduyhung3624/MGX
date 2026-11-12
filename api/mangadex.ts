@@ -81,7 +81,7 @@ export default {
     const upstreamUrl = new URL(safePath ? `${MANGADEX_API}/${safePath}` : MANGADEX_API)
 
     for (const [key, value] of incomingUrl.searchParams) {
-      if (key !== '_mgx_path' && key !== '_vercel_share') {
+      if (key !== '_mgx_path' && key !== '_vercel_share' && key !== 'path') {
         upstreamUrl.searchParams.append(key, value)
       }
     }
