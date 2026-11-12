@@ -1,3 +1,5 @@
+import { isAllowedMangaDexImageUrl, proxyMangaDexImage } from './_lib/mangadexImage.js'
+
 export default async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'HEAD') {
     res.setHeader('Allow', 'GET, HEAD')
@@ -14,16 +16,30 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Invalid page URL' })
   }
 
-  const host = target.hostname.toLowerCase()
-  const allowed =
-    target.protocol === 'https:' &&
-    (host === 'uploads.mangadex.org' ||
-      host === 'mangadex.network' ||
-      host.endsWith('.mangadex.network'))
+  if (
+    !isAllowedMangaDexImageUrl(target) ||
+    target.search ||
+    target.hash
+  ) {
+    return res.status(400).json({ error: 'Unsupported image URL' })
+  }
 
-  if (!allowed) return res.status(400).json({ error: 'Unsupported image host' })
+  let segments
+  try {
+    segments = target.pathname.split('/').filter(Boolean).map(decodeURIComponent)
+  } catch {
+    return res.status(400).json({ error: 'Invalid page path' })
+  }
 
-  res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400')
-  res.setHeader('Location', target.toString())
-  return res.status(307).end()
+  if (
+    segments.length !== 3 ||
+    !['data', 'data-saver'].includes(segments[0]) ||
+    !/^[a-f0-9]{32}$/i.test(segments[1]) ||
+    !/^[a-z0-9][a-z0-9._-]{0,255}$/i.test(segments[2]) ||
+    segments[2].includes('..')
+  ) {
+    return res.status(400).json({ error: 'Invalid MangaDex page path' })
+  }
+
+  return proxyMangaDexImage(req, res, target)
 }
