@@ -31,12 +31,15 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Invalid page path' })
   }
 
+  const prefix = segments.slice(0, -3)
+  const [quality, hash, fileName] = segments.slice(-3)
   if (
-    segments.length !== 3 ||
-    !['data', 'data-saver'].includes(segments[0]) ||
-    !/^[a-f0-9]{32}$/i.test(segments[1]) ||
-    !/^[a-z0-9][a-z0-9._-]{0,255}$/i.test(segments[2]) ||
-    segments[2].includes('..')
+    segments.length < 3 ||
+    !prefix.every((segment) => /^[a-z0-9][a-z0-9._-]{0,255}$/i.test(segment) && !segment.includes('..')) ||
+    !['data', 'data-saver'].includes(quality) ||
+    !/^[a-f0-9]{32}$/i.test(hash) ||
+    !/^[a-z0-9][a-z0-9._-]{0,255}$/i.test(fileName) ||
+    fileName.includes('..')
   ) {
     return res.status(400).json({ error: 'Invalid MangaDex page path' })
   }
