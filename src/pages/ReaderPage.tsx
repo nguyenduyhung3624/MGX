@@ -55,6 +55,8 @@ const ReaderPage = () => {
 	const recordedChapter = useRef('')
 	const [storageError, setStorageError] = useState('')
 	const [readerMode, setReaderMode] = useState<ReaderMode>(getStoredMode)
+	const [controlsVisible, setControlsVisible] = useState(true)
+	const touchStartY = useRef<number | null>(null)
 	const [pageState, setPageState] = useState({ chapterId: '', page: 0 })
 	const preload = useRef<ReturnType<typeof preloadPages> | null>(null)
 
@@ -136,7 +138,36 @@ const ReaderPage = () => {
 
 	useEffect(() => {
 		window.scrollTo({ top: 0, behavior: 'auto' })
+		setControlsVisible(true)
 	}, [chapterId])
+
+	// Reveal the reader toolbar when the reader moves toward the beginning of the page.
+	useEffect(() => {
+		let previousY = window.scrollY
+		const handleScroll = () => {
+			const currentY = window.scrollY
+			const delta = currentY - previousY
+			if (Math.abs(delta) > 4) setControlsVisible(delta < 0)
+			previousY = currentY
+		}
+		window.addEventListener('scroll', handleScroll, { passive: true })
+		return () => window.removeEventListener('scroll', handleScroll)
+	}, [])
+
+	const handleReaderTouchStart = (event: React.TouchEvent<HTMLElement>) => {
+		touchStartY.current = event.touches[0]?.clientY ?? null
+	}
+
+	const handleReaderTouchEnd = (event: React.TouchEvent<HTMLElement>) => {
+		const startY = touchStartY.current
+		const endY = event.changedTouches[0]?.clientY
+		touchStartY.current = null
+		if (startY === null || endY === undefined) return
+
+		const delta = endY - startY
+		if (delta > 44) setControlsVisible(true)
+		else if (delta < -44) setControlsVisible(false)
+	}
 
 	useEffect(() => {
 		if (readerMode !== 'paged' || !pageFiles.length) return
@@ -187,19 +218,38 @@ const ReaderPage = () => {
 	const shownFile = pageFiles[Math.min(activePage, pageFiles.length - 1)]
 
 	return (
-		<main className={`reader-page reader-mode-${readerMode}`}>
-			{readerMode === 'scroll' && <header className="reader-bar">
-				<Link to={mangaId ? `/manga/${mangaId}` : '/'} className="reader-back">← Manga</Link>
-				<div className="reader-title"><strong>Chapter {chapterQuery.data?.attributes.chapter || '?'}</strong><span>{pageFiles.length} pages</span></div>
-				<div className="reader-mode-switch" role="group" aria-label="Reader mode">
-					<button type="button" className={readerMode === 'scroll' ? 'active' : ''} onClick={() => setReaderMode('scroll')}>Scroll</button>
-					<button type="button" onClick={() => setReaderMode('paged')}>Click</button>
+		<main
+			className={`reader-page reader-mode-${readerMode}`}
+			onTouchStart={handleReaderTouchStart}
+			onTouchEnd={handleReaderTouchEnd}
+		>
+			<header className={`reader-bar reader-floating-bar${controlsVisible ? ' is-visible' : ''}`}>
+				<Link to={mangaId ? `/manga/${mangaId}` : '/'} className="reader-back" aria-label="Back to manga">
+					<span aria-hidden="true">←</span><span>Back</span>
+				</Link>
+				<div className="reader-toolbar-chapter">
+					<strong>Chapter {chapterQuery.data?.attributes.chapter || '?'}</strong>
+					<select
+						aria-label="Choose chapter"
+						value={chapterId || ''}
+						onChange={(event) => { if (event.target.value) navigate(`/read/${event.target.value}`) }}
+					>
+						<option value={chapterId || ''}>Chapter {chapterQuery.data?.attributes.chapter || '?'}</option>
+						{navigationChapters.filter((item) => item.id !== chapterId).map((item) => (
+							<option key={item.id} value={item.id}>
+								{item.volume ? `Vol. ${item.volume} · ` : ''}Ch. {item.chapter || '?'}
+							</option>
+						))}
+					</select>
 				</div>
+				<div className="reader-mode-switch" role="group" aria-label="Reader mode">
+					<button type="button" className={readerMode === 'scroll' ? 'active' : ''} onClick={() => { setReaderMode('scroll'); setControlsVisible(true) }}>Scroll</button>
+					<button type="button" className={readerMode === 'paged' ? 'active' : ''} onClick={() => { setReaderMode('paged'); setControlsVisible(true) }}>Click</button>
+				</div>
+				<button type="button" className="reader-toolbar-hide" aria-label="Hide reader controls" onClick={() => setControlsVisible(false)}>×</button>
 			</header>}
 
 			{storageError && <p className={readerMode === 'paged' ? 'reader-sr-only' : 'save-error'} role="alert">{storageError}</p>}
-			{readerMode === 'scroll' && <div className="reader-navigation-top"><ChapterControls previous={previousChapter} next={nextChapter} loading={chapterNavigationQuery.isLoading} /></div>}
-
 			{readerMode === 'scroll' ? (
 				<div className="reader-pages">
 					{pageFiles.map((file, index) => <img key={file} src={imageUrl(file)} alt={`Page ${index + 1}`} loading="lazy" decoding="async" onLoad={markChapterRead} />)}
