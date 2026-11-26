@@ -3392,9 +3392,9 @@ body.mgx-reader-active {
 }
 
 .reader-chapter-picker {
-  position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + 68px);
+  right: max(16px, env(safe-area-inset-right));
   z-index: 161;
   display: flex;
   width: min(390px, calc(100vw - 24px));
