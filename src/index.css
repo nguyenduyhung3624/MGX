@@ -3687,3 +3687,61 @@ body.mgx-reader-active {
     gap: 8px;
   }
 }
+
+
+/* Desktop home popular hero: constrain the feature row and keep its text readable. */
+@media (min-width: 981px) {
+  .home-popular .popular-hero {
+    min-height: 520px;
+    padding: 112px max(32px, calc((100vw - 1240px) / 2)) 58px;
+  }
+
+  .home-popular .popular-hero-heading {
+    left: max(32px, calc((100vw - 1240px) / 2));
+    top: 54px;
+    font-size: clamp(25px, 2vw, 30px);
+  }
+
+  .home-popular .popular-hero-link {
+    width: min(100%, 1240px);
+    margin-inline: auto;
+    align-items: flex-start;
+    gap: clamp(24px, 3vw, 42px);
+  }
+
+  .home-popular .popular-hero-cover {
+    flex: 0 0 clamp(190px, 17vw, 238px);
+    width: clamp(190px, 17vw, 238px);
+    aspect-ratio: 0.465 / 1;
+  }
+
+  .home-popular .popular-hero-content {
+    width: min(100%, 760px);
+    max-width: 760px;
+    min-height: clamp(310px, 26vw, 420px);
+  }
+
+  .home-popular .popular-hero-content h2 {
+    max-width: 780px;
+    margin-top: 2px;
+    font-size: clamp(30px, 2.5vw, 40px);
+    line-height: 1.12;
+  }
+
+  .home-popular .popular-hero-content p {
+    max-width: 720px;
+    margin-top: 4px;
+    font-size: clamp(14px, 1.05vw, 16px);
+    line-height: 1.65;
+    -webkit-line-clamp: 4;
+  }
+
+  .home-popular .popular-hero-content strong {
+    padding-right: 0;
+  }
+
+  .home-popular .popular-controls {
+    right: max(32px, calc((100vw - 1240px) / 2));
+    bottom: 18px;
+  }
+}
