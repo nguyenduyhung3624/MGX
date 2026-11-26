@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getLatestManga, getPopularManga, getPopularNewManga } from '../services/manga'
-import { getDiscoveryCollection } from '../services/discoveryCollections'
+import { DISCOVERY_REFRESH_INTERVAL, getDiscoveryCollection } from '../services/discoveryCollections'
 import { useAuth } from '../hooks/useAuth'
 import type { Manga } from '../types/manga'
 import { getCoverImageUrl } from '../services/mangaDexImages'
@@ -174,24 +174,30 @@ const Home = () => {
   const popularNewQuery = useQuery({
     queryKey: ['popular-new-titles'],
     queryFn: () => getPopularNewManga(15),
-    staleTime: 60 * 1000,
-    refetchInterval: 10 * 60 * 1000,
+    staleTime: DISCOVERY_REFRESH_INTERVAL,
+    refetchInterval: DISCOVERY_REFRESH_INTERVAL,
     refetchOnWindowFocus: true,
   })
   const selfPublishedQuery = useQuery({
     queryKey: ['home-self-published'],
     queryFn: () => getDiscoveryCollection('self-published').load(15, 0),
-    staleTime: 5 * 60 * 1000,
+    staleTime: DISCOVERY_REFRESH_INTERVAL,
+    refetchInterval: DISCOVERY_REFRESH_INTERVAL,
+    refetchOnWindowFocus: true,
   })
   const seasonalQuery = useQuery({
     queryKey: ['home-seasonal'],
     queryFn: () => getDiscoveryCollection('seasonal').load(15, 0),
-    staleTime: 5 * 60 * 1000,
+    staleTime: DISCOVERY_REFRESH_INTERVAL,
+    refetchInterval: DISCOVERY_REFRESH_INTERVAL,
+    refetchOnWindowFocus: true,
   })
   const recentlyAddedQuery = useQuery({
     queryKey: ['home-recently-added'],
     queryFn: () => getDiscoveryCollection('recently-added').load(15, 0),
-    staleTime: 5 * 60 * 1000,
+    staleTime: DISCOVERY_REFRESH_INTERVAL,
+    refetchInterval: DISCOVERY_REFRESH_INTERVAL,
+    refetchOnWindowFocus: true,
   })
   const featuredSource = popularNewQuery.data?.data?.length
     ? popularNewQuery.data.data
