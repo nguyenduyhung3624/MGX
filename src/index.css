@@ -3016,3 +3016,143 @@ button, input, select, .search-box, .update-row, .chapter-item, .manga-info-pane
     align-self: center;
   }
 }
+
+
+/* Mobile-first MangaDex-style reader controls: swipe down to reveal, scroll down to hide. */
+.reader-floating-bar {
+  position: fixed !important;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 120;
+  display: flex;
+  min-height: 58px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: calc(8px + env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 8px max(12px, env(safe-area-inset-left));
+  background: rgba(9, 9, 9, 0.94);
+  border-bottom: 1px solid #292929;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(14px);
+  transform: translateY(-115%);
+  opacity: 0.98;
+  pointer-events: none;
+  transition: transform 180ms ease, opacity 180ms ease;
+}
+
+.reader-floating-bar.is-visible {
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.reader-floating-bar .reader-back {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 5px;
+  color: #ff8069;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.reader-toolbar-chapter {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 220px;
+  align-items: center;
+  gap: 8px;
+}
+
+.reader-toolbar-chapter strong {
+  flex: 0 0 auto;
+  color: #f1f1f1;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.reader-toolbar-chapter select {
+  width: 100%;
+  min-width: 0;
+  height: 36px;
+  padding: 0 30px 0 9px;
+  border: 1px solid #383838;
+  background: #1b1b1b;
+  color: #f1f1f1;
+  font-size: 12px;
+}
+
+.reader-floating-bar .reader-mode-switch {
+  flex: 0 0 auto;
+}
+
+.reader-floating-bar .reader-mode-switch button {
+  min-height: 36px;
+  padding: 7px 10px;
+  font-size: 12px;
+}
+
+.reader-toolbar-hide {
+  display: grid;
+  width: 30px;
+  height: 34px;
+  flex: 0 0 auto;
+  place-items: center;
+  background: transparent;
+  color: #bdbdbd;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.reader-toolbar-hide:hover {
+  color: #fff;
+}
+
+@media (max-width: 620px) {
+  .reader-floating-bar {
+    gap: 8px;
+    min-height: 54px;
+    padding-top: calc(7px + env(safe-area-inset-top));
+    padding-right: max(8px, env(safe-area-inset-right));
+    padding-bottom: 7px;
+    padding-left: max(8px, env(safe-area-inset-left));
+  }
+
+  .reader-floating-bar .reader-back {
+    gap: 3px;
+    font-size: 12px;
+  }
+
+  .reader-toolbar-chapter {
+    flex-basis: 110px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+  }
+
+  .reader-toolbar-chapter strong {
+    display: none;
+  }
+
+  .reader-toolbar-chapter select {
+    height: 36px;
+    padding-left: 7px;
+    font-size: 11px;
+  }
+
+  .reader-floating-bar .reader-mode-switch button {
+    min-height: 36px;
+    padding: 7px 8px;
+    font-size: 11px;
+  }
+
+  .reader-toolbar-hide {
+    width: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reader-floating-bar {
+    transition: none;
+  }
+}
