@@ -3280,3 +3280,32 @@ body.mgx-reader-active {
     transition: none;
   }
 }
+
+
+/* Keep the home featured cover at one predictable portrait ratio.
+   The text column may grow, but it must never stretch the cover vertically. */
+.home-popular .popular-hero-link {
+  align-items: flex-start;
+}
+
+.home-popular .popular-hero-cover {
+  align-self: flex-start;
+  flex: 0 0 clamp(130px, 14vw, 214px);
+  width: clamp(130px, 14vw, 214px);
+  height: auto;
+  aspect-ratio: 0.465 / 1;
+}
+
+@media (max-width: 620px) {
+  .home-popular .popular-hero-link {
+    align-items: flex-start;
+  }
+
+  .home-popular .popular-hero-cover {
+    flex-basis: 118px;
+    width: 118px;
+    aspect-ratio: 0.465 / 1;
+    height: auto;
+    align-self: flex-start;
+  }
+}
