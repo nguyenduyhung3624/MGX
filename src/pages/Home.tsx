@@ -167,8 +167,8 @@ const Home = () => {
   const popularQuery = useQuery({
     queryKey: ['popular-manga'],
     queryFn: () => getPopularManga(15),
-    staleTime: 5 * 60 * 1000,
-    refetchInterval: 10 * 60 * 1000,
+    staleTime: DISCOVERY_REFRESH_INTERVAL,
+    refetchInterval: DISCOVERY_REFRESH_INTERVAL,
     refetchOnWindowFocus: true,
   })
   const popularNewQuery = useQuery({
@@ -390,7 +390,7 @@ const Home = () => {
 
       <MangaRail href="/browse/recommended" loading={popularQuery.isLoading} items={recommendedItems} title="Recommended" />
       <MangaRail href="/browse/self-published" loading={selfPublishedQuery.isLoading} items={selfPublishedItems} title="Self-Published" />
-      <MangaRail href="/browse/seasonal" loading={seasonalQuery.isLoading} items={seasonalItems} title={`Seasonal: Summer ${new Date().getFullYear()}`} />
+      <MangaRail href="/browse/seasonal" loading={seasonalQuery.isLoading} items={seasonalItems} title={`New Releases: ${new Date().getFullYear()}`} />
       <MangaRail href="/browse/recently-added" loading={recentlyAddedQuery.isLoading} items={recentlyAddedItems} title="Recently Added" />
     </>
   )
