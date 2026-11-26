@@ -389,7 +389,7 @@ const Home = () => {
       </section>
 
       <MangaRail href="/browse/recommended" loading={popularQuery.isLoading} items={recommendedItems} title="Recommended" />
-      <MangaRail href="/browse/self-published" loading={selfPublishedQuery.isLoading} items={selfPublishedItems} title="Self-Published" />
+      <MangaRail href="/browse/self-published" loading={selfPublishedQuery.isLoading} items={selfPublishedItems} title="Ongoing Titles" />
       <MangaRail href="/browse/seasonal" loading={seasonalQuery.isLoading} items={seasonalItems} title={`New Releases: ${new Date().getFullYear()}`} />
       <MangaRail href="/browse/recently-added" loading={recentlyAddedQuery.isLoading} items={recentlyAddedItems} title="Recently Added" />
     </>
