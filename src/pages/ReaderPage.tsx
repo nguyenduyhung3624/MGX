@@ -17,6 +17,18 @@ const compareChapters = (first: AggregateChapter, second: AggregateChapter) => {
 	return byVolume || first.chapter.localeCompare(second.chapter, undefined, { numeric: true })
 }
 
+const compareChaptersNewestFirst = (first: AggregateChapter, second: AggregateChapter) => {
+	const firstVolume = first.volume?.trim() || ''
+	const secondVolume = second.volume?.trim() || ''
+	const firstHasVolume = Boolean(firstVolume && firstVolume.toLowerCase() !== 'none')
+	const secondHasVolume = Boolean(secondVolume && secondVolume.toLowerCase() !== 'none')
+
+	// Unnumbered/latest volume entries (often the currently serialized run) are shown first.
+	if (firstHasVolume !== secondHasVolume) return firstHasVolume ? 1 : -1
+	const byVolume = secondVolume.localeCompare(firstVolume, undefined, { numeric: true })
+	return byVolume || second.chapter.localeCompare(first.chapter, undefined, { numeric: true })
+}
+
 const getStoredMode = (): ReaderMode => {
 	try {
 		return localStorage.getItem(readerModeKey) === 'paged' ? 'paged' : 'scroll'
@@ -56,6 +68,8 @@ const ReaderPage = () => {
 	const [storageError, setStorageError] = useState('')
 	const [readerMode, setReaderMode] = useState<ReaderMode>(getStoredMode)
 	const [controlsVisible, setControlsVisible] = useState(true)
+	const [chapterPickerOpen, setChapterPickerOpen] = useState(false)
+	const [chapterSearch, setChapterSearch] = useState('')
 	const [scrollActivePage, setScrollActivePage] = useState(0)
 	const [pageMotion, setPageMotion] = useState<'next' | 'previous'>('next')
 	const gestureStart = useRef<{ x: number; y: number; pointerId: number } | null>(null)
@@ -88,6 +102,34 @@ const ReaderPage = () => {
 			.map((item) => [`${item.volume ?? ''}:${item.chapter}`, item] as const)
 	).values()).filter((item) => !item.isUnavailable).sort(compareChapters), [chapterNavigationQuery.data])
 	const currentChapterIndex = navigationChapters.findIndex((item) => item.id === chapterId || item.others?.includes(chapterId || '') || (item.chapter === chapterQuery.data?.attributes.chapter && (item.volume || 'none') === (chapterQuery.data?.attributes.volume || 'none')))
+	const selectedChapter = currentChapterIndex >= 0 ? navigationChapters[currentChapterIndex] : undefined
+	const chapterPickerItems = useMemo(
+		() => [...navigationChapters].sort(compareChaptersNewestFirst),
+		[navigationChapters]
+	)
+	const filteredChapterItems = useMemo(() => {
+		const term = chapterSearch.trim().toLowerCase()
+		if (!term) return chapterPickerItems
+		return chapterPickerItems.filter((item) =>
+			[item.volume, item.chapter, `chapter ${item.chapter}`, `vol ${item.volume}`]
+				.filter(Boolean)
+				.some((value) => String(value).toLowerCase().includes(term))
+		)
+	}, [chapterPickerItems, chapterSearch])
+	const chapterGroups = useMemo(() => {
+		const groups = new Map<string, AggregateChapter[]>()
+		filteredChapterItems.forEach((item) => {
+			const volume = item.volume?.trim()
+			const label = volume && volume.toLowerCase() !== 'none' ? `Volume ${volume}` : 'Other chapters'
+			const items = groups.get(label) ?? []
+			items.push(item)
+			groups.set(label, items)
+		})
+		return Array.from(groups.entries())
+	}, [filteredChapterItems])
+	const selectedChapterLabel = selectedChapter
+		? `${selectedChapter.volume && selectedChapter.volume.toLowerCase() !== 'none' ? `Vol. ${selectedChapter.volume} · ` : ''}Ch. ${selectedChapter.chapter || '?'}`
+		: `${chapterQuery.data?.attributes.volume ? `Vol. ${chapterQuery.data.attributes.volume} · ` : ''}Ch. ${chapterQuery.data?.attributes.chapter || '?'}`
 	const previousChapter = currentChapterIndex > 0 ? navigationChapters[currentChapterIndex - 1] : undefined
 	const nextChapter = currentChapterIndex >= 0 ? navigationChapters[currentChapterIndex + 1] : undefined
 	const pageFiles = pagesQuery.data ? (pagesQuery.data.chapter.data.length ? pagesQuery.data.chapter.data : pagesQuery.data.chapter.dataSaver) : []
@@ -186,7 +228,21 @@ const ReaderPage = () => {
 		window.scrollTo({ top: 0, behavior: 'auto' })
 		setControlsVisible(true)
 		setScrollActivePage(0)
+		setChapterPickerOpen(false)
+		setChapterSearch('')
 	}, [chapterId])
+
+	useEffect(() => {
+		if (!chapterPickerOpen) return
+		const handleEscape = (event: KeyboardEvent) => {
+			if (event.key === 'Escape') {
+				event.preventDefault()
+				setChapterPickerOpen(false)
+			}
+		}
+		window.addEventListener('keydown', handleEscape)
+		return () => window.removeEventListener('keydown', handleEscape)
+	}, [chapterPickerOpen])
 
 	useEffect(() => {
 		const root = document.documentElement
@@ -282,24 +338,92 @@ const ReaderPage = () => {
 			onPointerUp={handleReaderPointerUp}
 			onPointerCancel={handleReaderPointerCancel}
 		>
-			<header className={`reader-bar reader-floating-bar${controlsVisible ? ' is-visible' : ''}`}>
+			<header className={`reader-bar reader-floating-bar${controlsVisible ? ' is-visible' : ''}${chapterPickerOpen ? ' has-chapter-picker' : ''}`}>
 				<Link to={mangaId ? `/manga/${mangaId}` : '/'} className="reader-back" aria-label="Back to manga">
 					<span aria-hidden="true">←</span><span>Back</span>
 				</Link>
 				<div className="reader-toolbar-chapter">
-					<strong>Chapter {chapterQuery.data?.attributes.chapter || '?'}</strong>
-					<select
-						aria-label="Choose chapter"
-						value={chapterId || ''}
-						onChange={(event) => { if (event.target.value) navigate(`/read/${event.target.value}`) }}
+					<button
+						type="button"
+						className="reader-chapter-trigger"
+						aria-expanded={chapterPickerOpen}
+						aria-haspopup="dialog"
+						aria-label={`Choose chapter, current ${selectedChapterLabel}`}
+						onClick={() => {
+							setControlsVisible(true)
+							setChapterPickerOpen((open) => !open)
+						}}
 					>
-						<option value={chapterId || ''}>Chapter {chapterQuery.data?.attributes.chapter || '?'}</option>
-						{navigationChapters.filter((item) => item.id !== chapterId).map((item) => (
-							<option key={item.id} value={item.id}>
-								{item.volume ? `Vol. ${item.volume} · ` : ''}Ch. {item.chapter || '?'}
-							</option>
-						))}
-					</select>
+						<span>{selectedChapterLabel}</span>
+						<svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7.5 5 5 5-5" /></svg>
+					</button>
+					{chapterPickerOpen && (
+						<>
+							<button
+								type="button"
+								className="reader-chapter-picker-backdrop"
+								aria-label="Close chapter picker"
+								onClick={() => setChapterPickerOpen(false)}
+							/>
+							<section className="reader-chapter-picker" role="dialog" aria-modal="true" aria-label="Choose a chapter">
+								<div className="reader-chapter-picker-heading">
+									<div>
+										<strong>Choose chapter</strong>
+										<span>{chapterNavigationQuery.isLoading ? 'Loading chapter list…' : `${navigationChapters.length} chapters available`}</span>
+									</div>
+									<button type="button" aria-label="Close chapter picker" onClick={() => setChapterPickerOpen(false)}>×</button>
+								</div>
+								<label className="reader-chapter-search">
+									<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>
+									<input
+										type="search"
+										value={chapterSearch}
+										onChange={(event) => setChapterSearch(event.target.value)}
+										placeholder="Search chapter or volume…"
+										aria-label="Search chapter or volume"
+									/>
+									{chapterSearch && <button type="button" aria-label="Clear search" onClick={() => setChapterSearch('')}>×</button>}
+								</label>
+								<div className="reader-chapter-picker-list">
+									{chapterNavigationQuery.isLoading ? (
+										<p className="reader-chapter-picker-message">Loading chapters…</p>
+									) : chapterNavigationQuery.isError ? (
+										<div className="reader-chapter-picker-message">
+											<p>Unable to load chapters.</p>
+											<button type="button" onClick={() => chapterNavigationQuery.refetch()}>Try again</button>
+										</div>
+									) : chapterGroups.length === 0 ? (
+										<p className="reader-chapter-picker-message">No matching chapters.</p>
+									) : chapterGroups.map(([volume, items]) => (
+										<section className="reader-chapter-group" key={volume}>
+											<h3>{volume}</h3>
+											<div>
+												{items.map((item) => {
+													const isCurrent = item.id === selectedChapter?.id || item.others?.includes(chapterId || '')
+													return (
+														<button
+															type="button"
+															key={item.id}
+															className={`reader-chapter-option${isCurrent ? ' is-current' : ''}`}
+															aria-current={isCurrent ? 'page' : undefined}
+															onClick={() => {
+																setChapterPickerOpen(false)
+																setChapterSearch('')
+																if (item.id !== chapterId) navigate(`/read/${item.id}`)
+															}}
+														>
+															<span>Chapter {item.chapter || '?'}</span>
+															<span className="reader-chapter-option-check" aria-hidden="true">{isCurrent ? '✓' : ''}</span>
+														</button>
+													)
+												})}
+											</div>
+										</section>
+									))}
+								</div>
+							</section>
+						</>
+					)}
 				</div>
 				<div className="reader-mode-switch" role="group" aria-label="Reader mode">
 					<button type="button" className={readerMode === 'scroll' ? 'active' : ''} onClick={() => { setReaderMode('scroll'); setControlsVisible(true) }}>Scroll</button>
