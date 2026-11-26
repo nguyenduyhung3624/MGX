@@ -357,72 +357,6 @@ const ReaderPage = () => {
 						<span>{selectedChapterLabel}</span>
 						<svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7.5 5 5 5-5" /></svg>
 					</button>
-					{chapterPickerOpen && (
-						<>
-							<button
-								type="button"
-								className="reader-chapter-picker-backdrop"
-								aria-label="Close chapter picker"
-								onClick={() => setChapterPickerOpen(false)}
-							/>
-							<section className="reader-chapter-picker" role="dialog" aria-modal="true" aria-label="Choose a chapter">
-								<div className="reader-chapter-picker-heading">
-									<div>
-										<strong>Choose chapter</strong>
-										<span>{chapterNavigationQuery.isLoading ? 'Loading chapter list…' : `${navigationChapters.length} chapters available`}</span>
-									</div>
-									<button type="button" aria-label="Close chapter picker" onClick={() => setChapterPickerOpen(false)}>×</button>
-								</div>
-								<label className="reader-chapter-search">
-									<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>
-									<input
-										type="search"
-										value={chapterSearch}
-										onChange={(event) => setChapterSearch(event.target.value)}
-										placeholder="Search chapter or volume…"
-										aria-label="Search chapter or volume"
-									/>
-									{chapterSearch && <button type="button" aria-label="Clear search" onClick={() => setChapterSearch('')}>×</button>}
-								</label>
-								<div className="reader-chapter-picker-list">
-									{chapterNavigationQuery.isLoading ? (
-										<p className="reader-chapter-picker-message">Loading chapters…</p>
-									) : chapterNavigationQuery.isError ? (
-										<div className="reader-chapter-picker-message">
-											<p>Unable to load chapters.</p>
-											<button type="button" onClick={() => chapterNavigationQuery.refetch()}>Try again</button>
-										</div>
-									) : chapterGroups.length === 0 ? (
-										<p className="reader-chapter-picker-message">No matching chapters.</p>
-									) : chapterGroups.map(([volume, items]) => (
-										<section className="reader-chapter-group" key={volume}>
-											<h3>{volume}</h3>
-											<div>
-												{items.map((item) => {
-													const isCurrent = item.id === selectedChapter?.id || item.others?.includes(chapterId || '')
-													return (
-														<button
-															type="button"
-															key={item.id}
-															className={`reader-chapter-option${isCurrent ? ' is-current' : ''}`}
-															aria-current={isCurrent ? 'page' : undefined}
-															onClick={() => {
-																setChapterPickerOpen(false)
-																setChapterSearch('')
-																if (item.id !== chapterId) navigate(`/read/${item.id}`)
-															}}
-														>
-															<span>Chapter {item.chapter || '?'}</span>
-															<span className="reader-chapter-option-check" aria-hidden="true">{isCurrent ? '✓' : ''}</span>
-														</button>
-													)
-												})}
-											</div>
-										</section>
-									))}
-								</div>
-							</section>
-						</>
 					)}
 				</div>
 				<div className="reader-mode-switch" role="group" aria-label="Reader mode">
@@ -431,6 +365,69 @@ const ReaderPage = () => {
 				</div>
 				<button type="button" className="reader-toolbar-hide" aria-label="Hide reader controls" onClick={() => setControlsVisible(false)}>×</button>
 			</header>
+
+			{chapterPickerOpen && (
+				<>
+					<button type="button" className="reader-chapter-picker-backdrop" aria-label="Close chapter picker" onClick={() => setChapterPickerOpen(false)} />
+			<section className="reader-chapter-picker" role="dialog" aria-modal="true" aria-label="Choose a chapter">
+				<div className="reader-chapter-picker-heading">
+					<div>
+						<strong>Choose chapter</strong>
+						<span>{chapterNavigationQuery.isLoading ? 'Loading chapter list…' : `${navigationChapters.length} chapters available`}</span>
+					</div>
+					<button type="button" aria-label="Close chapter picker" onClick={() => setChapterPickerOpen(false)}>×</button>
+				</div>
+				<label className="reader-chapter-search">
+					<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>
+					<input
+						type="search"
+						value={chapterSearch}
+						onChange={(event) => setChapterSearch(event.target.value)}
+						placeholder="Search chapter or volume…"
+						aria-label="Search chapter or volume"
+					/>
+					{chapterSearch && <button type="button" aria-label="Clear search" onClick={() => setChapterSearch('')}>×</button>}
+				</label>
+				<div className="reader-chapter-picker-list">
+					{chapterNavigationQuery.isLoading ? (
+						<p className="reader-chapter-picker-message">Loading chapters…</p>
+					) : chapterNavigationQuery.isError ? (
+						<div className="reader-chapter-picker-message">
+							<p>Unable to load chapters.</p>
+							<button type="button" onClick={() => chapterNavigationQuery.refetch()}>Try again</button>
+						</div>
+					) : chapterGroups.length === 0 ? (
+						<p className="reader-chapter-picker-message">No matching chapters.</p>
+					) : chapterGroups.map(([volume, items]) => (
+						<section className="reader-chapter-group" key={volume}>
+							<h3>{volume}</h3>
+							<div>
+								{items.map((item) => {
+									const isCurrent = item.id === selectedChapter?.id || item.others?.includes(chapterId || '')
+									return (
+						<button
+							type="button"
+							key={item.id}
+							className={`reader-chapter-option${isCurrent ? ' is-current' : ''}`}
+							aria-current={isCurrent ? 'page' : undefined}
+							onClick={() => {
+								setChapterPickerOpen(false)
+								setChapterSearch('')
+								if (item.id !== chapterId) navigate(`/read/${item.id}`)
+							}}
+						>
+							<span>Chapter {item.chapter || '?'}</span>
+							<span className="reader-chapter-option-check" aria-hidden="true">{isCurrent ? '✓' : ''}</span>
+						</button>
+									)
+								})}
+							</div>
+						</section>
+					))}
+				</div>
+			</section>
+				</>
+			)}
 
 			{storageError && <p className={readerMode === 'paged' ? 'reader-sr-only' : 'save-error'} role="alert">{storageError}</p>}
 			{readerMode === 'scroll' ? (
