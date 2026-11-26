@@ -56,7 +56,11 @@ const ReaderPage = () => {
 	const [storageError, setStorageError] = useState('')
 	const [readerMode, setReaderMode] = useState<ReaderMode>(getStoredMode)
 	const [controlsVisible, setControlsVisible] = useState(true)
-	const touchStartY = useRef<number | null>(null)
+	const [scrollActivePage, setScrollActivePage] = useState(0)
+	const [pageMotion, setPageMotion] = useState<'next' | 'previous'>('next')
+	const gestureStart = useRef<{ x: number; y: number; pointerId: number } | null>(null)
+	const suppressClickUntil = useRef(0)
+	const readerPagesRef = useRef<HTMLDivElement | null>(null)
 	const [pageState, setPageState] = useState({ chapterId: '', page: 0 })
 	const preload = useRef<ReturnType<typeof preloadPages> | null>(null)
 
@@ -113,9 +117,51 @@ const ReaderPage = () => {
 			return
 		}
 		setAdvanceFrom(null)
+		setPageMotion(direction === 1 ? 'next' : 'previous')
 		setActivePage((current) => Math.min(pageFiles.length - 1, Math.max(0, current + direction)))
-		window.scrollTo({ top: 0, behavior: 'auto' })
 	}, [activePage, chapterId, pageFiles.length, setActivePage])
+
+	const handleReaderPointerDown = (event: React.PointerEvent<HTMLElement>) => {
+		if ((event.target as HTMLElement).closest('.reader-floating-bar, .reader-progress')) return
+		gestureStart.current = { x: event.clientX, y: event.clientY, pointerId: event.pointerId }
+	}
+
+	const handleReaderPointerUp = (event: React.PointerEvent<HTMLElement>) => {
+		const start = gestureStart.current
+		gestureStart.current = null
+		if (!start || start.pointerId !== event.pointerId) return
+
+		const deltaX = event.clientX - start.x
+		const deltaY = event.clientY - start.y
+		if (readerMode === 'paged' && Math.abs(deltaX) >= 56 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
+			suppressClickUntil.current = Date.now() + 450
+			movePage(deltaX < 0 ? 1 : -1)
+			return
+		}
+		if (Math.abs(deltaY) >= 44 && Math.abs(deltaY) > Math.abs(deltaX) * 1.15) {
+			setControlsVisible(deltaY > 0)
+		}
+	}
+
+	const handleReaderPointerCancel = () => {
+		gestureStart.current = null
+	}
+
+	const handlePageZoneClick = (direction: -1 | 1) => {
+		if (Date.now() < suppressClickUntil.current) return
+		movePage(direction)
+	}
+
+	const handleProgressSelect = (index: number) => {
+		if (readerMode === 'paged') {
+			setAdvanceFrom(null)
+			setPageMotion(index >= activePage ? 'next' : 'previous')
+			setActivePage(index)
+			return
+		}
+		readerPagesRef.current?.querySelectorAll<HTMLImageElement>('.reader-scroll-page')[index]
+			?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+	}
 
 	useEffect(() => {
 		if (advanceFrom === chapterId && nextChapter && chapterNavigationQuery.isSuccess && readerMode === 'paged') {
@@ -139,7 +185,34 @@ const ReaderPage = () => {
 	useEffect(() => {
 		window.scrollTo({ top: 0, behavior: 'auto' })
 		setControlsVisible(true)
+		setScrollActivePage(0)
 	}, [chapterId])
+
+	useEffect(() => {
+		const root = document.documentElement
+		root.classList.add('mgx-reader-active')
+		document.body.classList.add('mgx-reader-active')
+		return () => {
+			root.classList.remove('mgx-reader-active')
+			document.body.classList.remove('mgx-reader-active')
+		}
+	}, [])
+
+	useEffect(() => {
+		if (readerMode !== 'scroll' || !readerPagesRef.current || typeof IntersectionObserver === 'undefined') return
+		const images = readerPagesRef.current.querySelectorAll<HTMLImageElement>('.reader-scroll-page')
+		const observer = new IntersectionObserver((entries) => {
+			const visible = entries
+				.filter((entry) => entry.isIntersecting)
+				.sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
+			if (visible) {
+				const index = Number((visible.target as HTMLImageElement).dataset.pageIndex)
+				if (Number.isInteger(index)) setScrollActivePage(index)
+			}
+		}, { threshold: [0.1, 0.25, 0.4, 0.6, 0.8], rootMargin: '-18% 0px -48% 0px' })
+		images.forEach((image) => observer.observe(image))
+		return () => observer.disconnect()
+	}, [readerMode, pageFiles.length, chapterId])
 
 	// Reveal the reader toolbar when the reader moves toward the beginning of the page.
 	useEffect(() => {
@@ -153,21 +226,6 @@ const ReaderPage = () => {
 		window.addEventListener('scroll', handleScroll, { passive: true })
 		return () => window.removeEventListener('scroll', handleScroll)
 	}, [])
-
-	const handleReaderTouchStart = (event: React.TouchEvent<HTMLElement>) => {
-		touchStartY.current = event.touches[0]?.clientY ?? null
-	}
-
-	const handleReaderTouchEnd = (event: React.TouchEvent<HTMLElement>) => {
-		const startY = touchStartY.current
-		const endY = event.changedTouches[0]?.clientY
-		touchStartY.current = null
-		if (startY === null || endY === undefined) return
-
-		const delta = endY - startY
-		if (delta > 44) setControlsVisible(true)
-		else if (delta < -44) setControlsVisible(false)
-	}
 
 	useEffect(() => {
 		if (readerMode !== 'paged' || !pageFiles.length) return
@@ -220,8 +278,9 @@ const ReaderPage = () => {
 	return (
 		<main
 			className={`reader-page reader-mode-${readerMode}`}
-			onTouchStart={handleReaderTouchStart}
-			onTouchEnd={handleReaderTouchEnd}
+			onPointerDown={handleReaderPointerDown}
+			onPointerUp={handleReaderPointerUp}
+			onPointerCancel={handleReaderPointerCancel}
 		>
 			<header className={`reader-bar reader-floating-bar${controlsVisible ? ' is-visible' : ''}`}>
 				<Link to={mangaId ? `/manga/${mangaId}` : '/'} className="reader-back" aria-label="Back to manga">
@@ -251,15 +310,27 @@ const ReaderPage = () => {
 
 			{storageError && <p className={readerMode === 'paged' ? 'reader-sr-only' : 'save-error'} role="alert">{storageError}</p>}
 			{readerMode === 'scroll' ? (
-				<div className="reader-pages">
-					{pageFiles.map((file, index) => <img key={file} src={imageUrl(file)} alt={`Page ${index + 1}`} loading="lazy" decoding="async" onLoad={markChapterRead} />)}
+				<div className="reader-pages" ref={readerPagesRef}>
+					{pageFiles.map((file, index) => (
+						<img
+							key={file}
+							className="reader-scroll-page"
+							data-page-index={index}
+							src={imageUrl(file)}
+							alt={`Page ${index + 1}`}
+							loading="lazy"
+							decoding="async"
+							draggable={false}
+							onLoad={markChapterRead}
+						/>
+					))}
 				</div>
 			) : (
 				<section className="reader-paged" aria-label={`Page ${activePage + 1} of ${pageFiles.length}`}>
 					<div className="reader-image-stage" onPointerDown={startHold} onPointerUp={cancelHold} onPointerCancel={cancelHold} onPointerMove={cancelHold} onContextMenu={event => event.preventDefault()}>
-						<button type="button" className="reader-page-zone reader-page-zone-prev" aria-label="Previous page" onClick={() => movePage(-1)} />
-						<img key={shownFile} className="reader-single-page" src={imageUrl(shownFile)} alt={`Page ${activePage + 1}`} onLoad={markChapterRead} />
-						<button type="button" className="reader-page-zone reader-page-zone-next" aria-label={activePage === pageFiles.length - 1 ? 'Next chapter' : 'Next page'} onClick={() => movePage(1)} />
+						<button type="button" className="reader-page-zone reader-page-zone-prev" aria-label="Previous page" onClick={() => handlePageZoneClick(-1)} />
+						<img key={shownFile} className={`reader-single-page is-moving-${pageMotion}`} src={imageUrl(shownFile)} alt={`Page ${activePage + 1}`} draggable={false} onLoad={markChapterRead} />
+						<button type="button" className="reader-page-zone reader-page-zone-next" aria-label={activePage === pageFiles.length - 1 ? 'Next chapter' : 'Next page'} onClick={() => handlePageZoneClick(1)} />
 					</div>
 					<p className="reader-sr-only" aria-live="polite">{advanceFrom === chapterId && !nextChapter ? (chapterNavigationQuery.isLoading ? 'Loading chapters' : chapterNavigationQuery.isError ? 'Unable to load chapter navigation' : 'No next readable chapter') : `Page ${activePage + 1} of ${pageFiles.length}`}. Hold the image or press Escape to return to scroll mode.</p>
 				</section>
@@ -268,6 +339,24 @@ const ReaderPage = () => {
 			{readerMode === 'scroll' && <footer className="reader-footer-controls">
 				<ChapterControls previous={previousChapter} next={nextChapter} loading={chapterNavigationQuery.isLoading} />
 			</footer>}
+
+			<nav className="reader-progress" aria-label="Chapter reading progress">
+				{pageFiles.map((file, index) => {
+					const progressPage = readerMode === 'paged' ? activePage : scrollActivePage
+					const state = index === progressPage ? 'is-current' : index < progressPage ? 'is-read' : ''
+					return (
+						<button
+							key={file}
+							type="button"
+							className={state}
+							aria-label={`Go to page ${index + 1} of ${pageFiles.length}`}
+							aria-current={index === progressPage ? 'step' : undefined}
+							title={`Page ${index + 1}`}
+							onClick={() => handleProgressSelect(index)}
+						/>
+					)
+				})}
+			</nav>
 		</main>
 	)
 }
