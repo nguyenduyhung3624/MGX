@@ -3689,50 +3689,51 @@ body.mgx-reader-active {
 }
 
 
-/* Desktop home popular hero: constrain the feature row and keep its text readable. */
+/* Desktop Popular hero: preserve the original left-aligned cover + text layout. */
 @media (min-width: 981px) {
   .home-popular .popular-hero {
-    min-height: 520px;
-    padding: 112px max(32px, calc((100vw - 1240px) / 2)) 58px;
+    min-height: 436px;
+    padding: 110px var(--home-gutter) 16px;
   }
 
   .home-popular .popular-hero-heading {
-    left: max(32px, calc((100vw - 1240px) / 2));
-    top: 54px;
-    font-size: clamp(25px, 2vw, 30px);
+    top: 55px;
+    left: var(--home-gutter);
+    font-size: 26px;
   }
 
   .home-popular .popular-hero-link {
-    width: min(100%, 1240px);
-    margin-inline: auto;
+    width: 100%;
+    margin: 0;
     align-items: flex-start;
-    gap: clamp(24px, 3vw, 42px);
+    gap: clamp(18px, 1.8vw, 26px);
   }
 
   .home-popular .popular-hero-cover {
-    flex: 0 0 clamp(190px, 17vw, 238px);
-    width: clamp(190px, 17vw, 238px);
+    flex: 0 0 clamp(160px, 14vw, 214px);
+    width: clamp(160px, 14vw, 214px);
     aspect-ratio: 0.465 / 1;
   }
 
   .home-popular .popular-hero-content {
-    width: min(100%, 760px);
-    max-width: 760px;
-    min-height: clamp(310px, 26vw, 420px);
+    flex: 1 1 auto;
+    width: auto;
+    max-width: 1000px;
+    min-height: 0;
   }
 
   .home-popular .popular-hero-content h2 {
-    max-width: 780px;
-    margin-top: 2px;
-    font-size: clamp(30px, 2.5vw, 40px);
+    max-width: 100%;
+    margin: 4px 0 8px;
+    font-size: clamp(27px, 2.25vw, 36px);
     line-height: 1.12;
   }
 
   .home-popular .popular-hero-content p {
-    max-width: 720px;
-    margin-top: 4px;
-    font-size: clamp(14px, 1.05vw, 16px);
-    line-height: 1.65;
+    max-width: 920px;
+    margin-top: 0;
+    font-size: 14px;
+    line-height: 1.6;
     -webkit-line-clamp: 4;
   }
 
@@ -3741,7 +3742,7 @@ body.mgx-reader-active {
   }
 
   .home-popular .popular-controls {
-    right: max(32px, calc((100vw - 1240px) / 2));
-    bottom: 18px;
+    right: var(--home-gutter);
+    bottom: 16px;
   }
 }
