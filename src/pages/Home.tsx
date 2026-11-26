@@ -199,10 +199,9 @@ const Home = () => {
     refetchInterval: DISCOVERY_REFRESH_INTERVAL,
     refetchOnWindowFocus: true,
   })
-  const featuredSource = popularNewQuery.data?.data?.length
-    ? popularNewQuery.data.data
-    : popularQuery.data?.data ?? []
-  const popularItems = featuredSource.slice(0, 8)
+  // The hero is exclusively powered by the new-title query.
+  // Do not briefly render the legacy Popular list while this request is pending.
+  const popularItems = (popularNewQuery.data?.data ?? []).slice(0, 8)
   const featured = popularItems[popularIndex] ?? popularItems[0]
 
   // Keep discovery sections distinct even when MangaDex queries overlap.
@@ -291,7 +290,13 @@ const Home = () => {
   return (
     <>
       <section className="popular-section home-popular">
-        {popularNewQuery.isLoading && popularQuery.isLoading ? <div className="state-message">Loading popular manga...</div> : featured ? (
+        {popularNewQuery.isLoading ? (
+          <div className="state-message">Loading popular new titles...</div>
+        ) : popularNewQuery.isError ? (
+          <div className="state-message" role="alert">
+            Unable to load popular new titles. <button type="button" onClick={() => popularNewQuery.refetch()}>Try again</button>
+          </div>
+        ) : featured ? (
           <div
             className={`popular-hero${heroDragging ? ' is-dragging' : ''}`}
             onPointerCancel={cancelHeroDrag}
