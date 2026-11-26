@@ -1,23 +1,21 @@
 import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { getTheme, setTheme, type AppTheme } from '../../services/theme'
 
 type SidebarProps = { open?: boolean; onClose?: () => void }
 
 const Sidebar = ({ open = false, onClose }: SidebarProps) => {
   const { user, logout } = useAuth()
-  const [theme, setTheme] = useState<'dark' | 'light'>(() =>
-    document.documentElement.dataset.theme === 'light' ? 'light' : 'dark'
-  )
+  const [theme, setCurrentTheme] = useState<AppTheme>(getTheme)
 
   useEffect(() => {
-    document.documentElement.dataset.theme = theme
-    localStorage.setItem('mgx-theme', theme)
-  }, [theme])
-
-  useEffect(() => {
-    const saved = localStorage.getItem('mgx-theme')
-    if (saved === 'light' || saved === 'dark') setTheme(saved)
+    const syncTheme = (event: Event) => {
+      const nextTheme = (event as CustomEvent<AppTheme>).detail
+      if (nextTheme === 'light' || nextTheme === 'dark') setCurrentTheme(nextTheme)
+    }
+    window.addEventListener('mgx-theme-change', syncTheme)
+    return () => window.removeEventListener('mgx-theme-change', syncTheme)
   }, [])
 
   return (
