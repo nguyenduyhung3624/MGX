@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom'
 import Header from '../components/layouts/Header'
 import Sidebar from '../components/layouts/Sidebar'
 import Footer from './Footer'
+import { getTheme, setTheme, toggleTheme } from '../services/theme'
 
 type LayoutCLientProps = {
   children: ReactNode
@@ -14,10 +15,7 @@ const LayoutCLient = ({ children }: LayoutCLientProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
-    const root = document.documentElement
-    const savedTheme = localStorage.getItem('manga-theme')
-    const devicePrefersLight = window.matchMedia('(prefers-color-scheme: light)').matches
-    root.setAttribute('data-theme', savedTheme || (devicePrefersLight ? 'light' : 'dark'))
+    setTheme(getTheme())
   }, [])
 
   useEffect(() => {
@@ -36,14 +34,6 @@ const LayoutCLient = ({ children }: LayoutCLientProps) => {
       document.body.style.overflow = ''
     }
   }, [mobileMenuOpen])
-
-  const toggleTheme = () => {
-    const root = document.documentElement
-    const isLight = root.getAttribute('data-theme') === 'light'
-    const nextTheme = isLight ? 'dark' : 'light'
-    root.setAttribute('data-theme', nextTheme)
-    localStorage.setItem('manga-theme', nextTheme)
-  }
 
   return (
     <div className={`app-shell${isAuthRoute ? ' auth-route' : ''}`}>
