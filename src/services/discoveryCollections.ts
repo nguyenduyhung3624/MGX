@@ -1,6 +1,8 @@
 import { getMangaPage, getNewManga, getPopularManga } from './manga'
 import type { MangaResponse } from '../types/manga'
 
+export const DISCOVERY_REFRESH_INTERVAL = 24 * 60 * 60 * 1000
+
 export type DiscoveryCollection =
   | 'recommended'
   | 'self-published'
@@ -27,19 +29,19 @@ export const getDiscoveryCollection = (
       load: (limit, offset) => getPopularManga(limit, offset),
     },
     'self-published': {
-      title: 'Self-Published',
-      eyebrow: 'ONGOING DISCOVERY',
-      description: 'Ongoing titles ordered by follower count, starting deeper in the discovery feed.',
+      title: 'Ongoing Titles',
+      eyebrow: 'ONGOING MANGA',
+      description: 'English-readable manga currently marked as ongoing, ordered by follower count.',
       load: (limit, offset) => getMangaPage(
         { 'order[followedCount]': 'desc', 'status[]': ['ongoing'] },
         limit,
-        60 + offset,
+        offset,
       ),
     },
     seasonal: {
-      title: `Seasonal: Summer ${currentYear}`,
+      title: `New Releases: ${currentYear}`,
       eyebrow: `${currentYear} RELEASES`,
-      description: `Titles released in ${currentYear}, ordered by latest uploaded chapter.`,
+      description: `English-readable manga published in ${currentYear}, ordered by latest uploaded chapter.`,
       load: (limit, offset) => getMangaPage(
         { year: currentYear, 'order[latestUploadedChapter]': 'desc' },
         limit,
