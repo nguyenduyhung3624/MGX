@@ -1,12 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
-import { getDiscoveryCollection, type DiscoveryCollection } from '../services/discoveryCollections'
+import { DISCOVERY_REFRESH_INTERVAL, getDiscoveryCollection, type DiscoveryCollection } from '../services/discoveryCollections'
 import type { Manga } from '../types/manga'
 import { getCoverImageUrl } from '../services/mangaDexImages'
 
 const pageSize = 20
-const maxPages = 3
 const fallbackCover = 'https://placehold.co/300x450/1c1c1c/ffffff?text=MANGA'
 
 const getMangaTitle = (manga: Manga) => {
@@ -36,7 +35,7 @@ const Browse = () => {
   const config = selectedCollection ? getDiscoveryCollection(selectedCollection) : undefined
   const rawPage = Number(searchParams.get('page') || '1')
   const page = Number.isFinite(rawPage) && rawPage > 0
-    ? Math.min(maxPages, Math.floor(rawPage))
+    ? Math.floor(rawPage)
     : 1
   const offset = (page - 1) * pageSize
 
@@ -47,7 +46,9 @@ const Browse = () => {
       return config.load(pageSize, offset)
     },
     enabled: Boolean(config),
-    staleTime: 5 * 60 * 1000,
+    staleTime: DISCOVERY_REFRESH_INTERVAL,
+    refetchInterval: DISCOVERY_REFRESH_INTERVAL,
+    refetchOnWindowFocus: true,
   })
 
   useEffect(() => {
@@ -65,8 +66,9 @@ const Browse = () => {
   }
 
   const items = query.data?.data ?? []
+  const totalPages = Math.max(1, Math.ceil((query.data?.total ?? 0) / pageSize))
   const hasPrevious = page > 1
-  const hasNext = page < maxPages && items.length === pageSize
+  const hasNext = page < totalPages
 
   return (
     <section className="browse-page">
@@ -116,7 +118,7 @@ const Browse = () => {
             <span />
           )}
 
-          <span className="browse-page-marker">{String(page).padStart(2, '0')} / {String(maxPages).padStart(2, '0')}</span>
+          <span className="browse-page-marker">{String(page).padStart(2, '0')} / {String(totalPages).padStart(2, '0')}</span>
 
           {hasNext ? (
             <Link to={`/browse/${collection}?page=${page + 1}`}>More picks →</Link>
