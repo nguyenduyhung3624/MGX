@@ -123,6 +123,19 @@ export const getPopularManga = async (
   return response.data
 }
 
+export const getPopularNewManga = async (
+  limit = 20,
+  offset = 0
+): Promise<MangaResponse> => {
+  const since = new Date()
+  since.setUTCFullYear(since.getUTCFullYear() - 1)
+
+  return getMangaPage({
+    createdAtSince: since.toISOString().slice(0, 19),
+    'order[followedCount]': 'desc',
+  }, limit, offset)
+}
+
 export const getNewManga = async (
   limit = 20,
   offset = 0
