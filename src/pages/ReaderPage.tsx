@@ -247,7 +247,7 @@ const ReaderPage = () => {
 					<button type="button" className={readerMode === 'paged' ? 'active' : ''} onClick={() => { setReaderMode('paged'); setControlsVisible(true) }}>Click</button>
 				</div>
 				<button type="button" className="reader-toolbar-hide" aria-label="Hide reader controls" onClick={() => setControlsVisible(false)}>×</button>
-			</header>}
+			</header>
 
 			{storageError && <p className={readerMode === 'paged' ? 'reader-sr-only' : 'save-error'} role="alert">{storageError}</p>}
 			{readerMode === 'scroll' ? (
