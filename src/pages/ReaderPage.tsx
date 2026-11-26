@@ -164,7 +164,7 @@ const ReaderPage = () => {
 	}, [activePage, chapterId, pageFiles.length, setActivePage])
 
 	const handleReaderPointerDown = (event: React.PointerEvent<HTMLElement>) => {
-		if ((event.target as HTMLElement).closest('.reader-floating-bar, .reader-progress')) return
+		if ((event.target as HTMLElement).closest('.reader-floating-bar, .reader-progress, .reader-chapter-picker, .reader-chapter-picker-backdrop')) return
 		gestureStart.current = { x: event.clientX, y: event.clientY, pointerId: event.pointerId }
 	}
 
