@@ -1,11 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { getLatestManga, getPopularManga } from '../services/manga'
+import { getLatestManga, getPopularManga, getPopularNewManga } from '../services/manga'
 import { getDiscoveryCollection } from '../services/discoveryCollections'
 import { useAuth } from '../hooks/useAuth'
 import type { Manga } from '../types/manga'
 import { getCoverImageUrl } from '../services/mangaDexImages'
+import { toggleTheme } from '../services/theme'
 
 const getMangaTitle = (manga: Manga) => {
   const titleMap = manga.attributes.title || {}
@@ -167,6 +168,15 @@ const Home = () => {
     queryKey: ['popular-manga'],
     queryFn: () => getPopularManga(15),
     staleTime: 5 * 60 * 1000,
+    refetchInterval: 10 * 60 * 1000,
+    refetchOnWindowFocus: true,
+  })
+  const popularNewQuery = useQuery({
+    queryKey: ['popular-new-titles'],
+    queryFn: () => getPopularNewManga(15),
+    staleTime: 60 * 1000,
+    refetchInterval: 10 * 60 * 1000,
+    refetchOnWindowFocus: true,
   })
   const selfPublishedQuery = useQuery({
     queryKey: ['home-self-published'],
@@ -183,7 +193,10 @@ const Home = () => {
     queryFn: () => getDiscoveryCollection('recently-added').load(15, 0),
     staleTime: 5 * 60 * 1000,
   })
-  const popularItems = (popularQuery.data?.data ?? []).slice(0, 8)
+  const featuredSource = popularNewQuery.data?.data?.length
+    ? popularNewQuery.data.data
+    : popularQuery.data?.data ?? []
+  const popularItems = featuredSource.slice(0, 8)
   const featured = popularItems[popularIndex] ?? popularItems[0]
 
   // Keep discovery sections distinct even when MangaDex queries overlap.
@@ -257,14 +270,6 @@ const Home = () => {
     heroDragRef.current.moved = false
   }
 
-  const toggleTheme = () => {
-    const root = document.documentElement
-    const isLight = root.getAttribute('data-theme') === 'light'
-    const nextTheme = isLight ? 'dark' : 'light'
-    root.setAttribute('data-theme', nextTheme)
-    localStorage.setItem('manga-theme', nextTheme)
-  }
-
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
@@ -280,7 +285,7 @@ const Home = () => {
   return (
     <>
       <section className="popular-section home-popular">
-        {popularQuery.isLoading ? <div className="state-message">Loading popular manga...</div> : featured ? (
+        {popularNewQuery.isLoading && popularQuery.isLoading ? <div className="state-message">Loading popular manga...</div> : featured ? (
           <div
             className={`popular-hero${heroDragging ? ' is-dragging' : ''}`}
             onPointerCancel={cancelHeroDrag}
