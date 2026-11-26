@@ -357,7 +357,6 @@ const ReaderPage = () => {
 						<span>{selectedChapterLabel}</span>
 						<svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7.5 5 5 5-5" /></svg>
 					</button>
-					)}
 				</div>
 				<div className="reader-mode-switch" role="group" aria-label="Reader mode">
 					<button type="button" className={readerMode === 'scroll' ? 'active' : ''} onClick={() => { setReaderMode('scroll'); setControlsVisible(true) }}>Scroll</button>
