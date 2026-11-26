@@ -95,9 +95,8 @@ const MangaDetail = () => {
 			<section className="detail-intro">
 				<img className="detail-intro-cover" alt={getTitle(manga)} onError={handleImageError} src={getCoverUrl(manga)} />
 				<div className="detail-intro-copy">
-					<p className="eyebrow">MANGADEX TITLE</p>
 					<h1>{getTitle(manga)}</h1>
-					<p className="detail-intro-subtitle">{manga?.attributes.altTitles?.[0]?.en || 'MangaDex catalogue'}</p>
+					{manga?.attributes.altTitles?.[0]?.en && <p className="detail-intro-subtitle">{manga.attributes.altTitles[0].en}</p>}
 					<p className="detail-intro-description">{description || 'No description available for this manga.'}</p>
 						<div className="detail-header-meta"><span>{manga?.attributes.year || 'N/A'}</span><span>{manga?.attributes.status || 'ongoing'}</span><span>{manga?.attributes.availableTranslatedLanguages?.length ?? 0} available translation languages</span></div>
 				</div>
